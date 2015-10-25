@@ -13,5 +13,5 @@
 // 28/03/2014: T. Pareaud - Creation
 
 function [n] = quat_norm(q)
-    n = sqrt(quat_getScal(quat_mult(q,quat_conj(q))));
+    n = sqrt(q'*q);
 endfunction
