@@ -75,7 +75,7 @@ void PwmApm25::_timer5_capt_cb(void)
     } else {
         // Save pulse into _PWM_RAW array.
         if ( frame_idx < APM25_PWM_NUM_TO_DEVICE ) {
-            _PWM_RAW[ frame_idx++ ] = pwidth;
+            _PWM_RAW[ frame_idx++ ] = pwidth ;
         }
     }
     // Save icr for next call.
@@ -207,37 +207,37 @@ void PwmApm25::write(uint8_t idx, const uint16_t& pwmValue)
 	switch (idx)
 	{
 	case CH_1:
-		OCR1B=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR1B=(pwmValue << 1);  // out1
 		break;
 	case CH_2:
-		OCR1A=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR1A=(pwmValue << 1);  // out1
 		break;
 	case CH_3:
-		OCR4C=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR4C=(pwmValue << 1);  // out1
 		break;
 	case CH_4:
-		OCR4B=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR4B=(pwmValue << 1);  // out1
 		break;
 	case CH_5:
-		OCR4A=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR4A=(pwmValue << 1);  // out1
 		break;
 	case CH_6:
-		OCR3C=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR3C=(pwmValue << 1);  // out1
 		break;
 	case CH_7:
-		OCR3B=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR3B=(pwmValue << 1);  // out1
 		break;
 	case CH_8:
-		OCR3A=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR3A=(pwmValue << 1);  // out1
 		break;
 	case CH_9:
 		/* Do nothing */
 		break;
 	case CH_10:
-		OCR5B=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR5B=(pwmValue << 1);  // out1
 		break;
 	case CH_11:
-		OCR5C=((constrain(pwmValue,MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
+		OCR5C=(pwmValue << 1);  // out1
 		break;
 	default:
 		/* Do nothing */
@@ -248,17 +248,17 @@ void PwmApm25::write(uint8_t idx, const uint16_t& pwmValue)
 void PwmApm25::write(const pwm_t* pwmValues)
 {
 	/* Process inputs (i.e. convert inputs to PWM */
-	OCR1B=((constrain(pwmValues[0],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out1
-	OCR1A=((constrain(pwmValues[1],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out2
-	OCR4C=((constrain(pwmValues[2],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out3
-	OCR4B=((constrain(pwmValues[3],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out4
-	OCR4A=((constrain(pwmValues[4],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out5
-	OCR3C=((constrain(pwmValues[5],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out6
-	OCR3B=((constrain(pwmValues[6],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out7
-	OCR3A=((constrain(pwmValues[7],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out8
+	OCR1B=(pwmValues[0] << 1);  // out1
+	OCR1A=(pwmValues[1] << 1);  // out2
+	OCR4C=(pwmValues[2] << 1);  // out3
+	OCR4B=(pwmValues[3] << 1);  // out4
+	OCR4A=(pwmValues[4] << 1);  // out5
+	OCR3C=(pwmValues[5] << 1);  // out6
+	OCR3B=(pwmValues[6] << 1);  // out7
+	OCR3A=(pwmValues[7] << 1);  // out8
 	/* Output 9 not implemented: rational ? */
-	OCR5B=((constrain(pwmValues[9],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out10
-	OCR5C=((constrain(pwmValues[10],MIN_PULSEWIDTH,MAX_PULSEWIDTH)) << 1);  // out11
+	OCR5B=(pwmValues[9] << 1);  // out10
+	OCR5C=(pwmValues[10] << 1);  // out11
 }
 
 void PwmApm25::read(uint8_t idx, uint16_t& pwmValues)

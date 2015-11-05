@@ -42,6 +42,7 @@ protected:
 public:
     static volatile uint16_t        _PWM_RAW[APM25_PWM_NUM_FROM_DEVICE];
     static volatile uint8_t         _radio_status;
+
 };
 
 } /* namespace hw */
