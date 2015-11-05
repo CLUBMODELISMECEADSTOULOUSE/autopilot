@@ -11,9 +11,8 @@
 namespace autom {
 
 ModulatorLut::ModulatorLut(
-		const Modulator::Parameter& paramSuper,
 		const ModulatorLut::Parameter& param)
-: Modulator::Modulator(paramSuper),
+: Modulator::Modulator(param.mod),
   _param(param)
 {
 }
@@ -94,7 +93,7 @@ void ModulatorLut::calcMotorCommandPriv(
 		// Saturation, thus scale such that to have MODULATOR_MOTOR_MAX
 		for (idx=0 ; idx<CNF_NB_MOTORS ; idx++)
 		{
-			command[idx] = ((uint16_t) math_min(MODULATOR_MOTOR_MAX, commandLong[idx] / scale)) + MIN_PULSEWIDTH;
+			command[idx] = ((uint16_t) math_min(MODULATOR_MOTOR_MAX, commandLong[idx] / scale)) + Modulator::_param.minPwm[idx];
 		}
 	}
 	else
@@ -102,7 +101,7 @@ void ModulatorLut::calcMotorCommandPriv(
 		// no saturation, thus scale ONLY
 		for (idx=0 ; idx<CNF_NB_MOTORS ; idx++)
 		{
-			command[idx] = ((uint16_t) math_min(MODULATOR_MOTOR_MAX, commandLong[idx] >> SCALE_TORSOR)) + MIN_PULSEWIDTH;
+			command[idx] = ((uint16_t) math_min(MODULATOR_MOTOR_MAX, commandLong[idx] >> SCALE_TORSOR)) + Modulator::_param.minPwm[idx];
 		}
 	}
 }

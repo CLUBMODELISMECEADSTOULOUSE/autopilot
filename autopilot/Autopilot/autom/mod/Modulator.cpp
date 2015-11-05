@@ -61,12 +61,12 @@ void Modulator::calcTorsor(
 	/* Compute the produced torsor */
 	for (iMotor=0 ; iMotor<CNF_NB_MOTORS ; iMotor++)
 	{
-		force_B.x += _param.inflMat[iMotor][0] * ((int32_t)(command[iMotor]-MIN_PULSEWIDTH));
-		force_B.y += _param.inflMat[iMotor][1] * ((int32_t)(command[iMotor]-MIN_PULSEWIDTH));
-		force_B.z += _param.inflMat[iMotor][2] * ((int32_t)(command[iMotor]-MIN_PULSEWIDTH));
-		torque_B.x += _param.inflMat[iMotor][3] * ((int32_t)(command[iMotor]-MIN_PULSEWIDTH));
-		torque_B.y += _param.inflMat[iMotor][4] * ((int32_t)(command[iMotor]-MIN_PULSEWIDTH));
-		torque_B.z += _param.inflMat[iMotor][5] * ((int32_t)(command[iMotor]-MIN_PULSEWIDTH));
+		force_B.x += _param.inflMat[iMotor][0] * ((int32_t)(command[iMotor]-_param.minPwm[iMotor]));
+		force_B.y += _param.inflMat[iMotor][1] * ((int32_t)(command[iMotor]-_param.minPwm[iMotor]));
+		force_B.z += _param.inflMat[iMotor][2] * ((int32_t)(command[iMotor]-_param.minPwm[iMotor]));
+		torque_B.x += _param.inflMat[iMotor][3] * ((int32_t)(command[iMotor]-_param.minPwm[iMotor]));
+		torque_B.y += _param.inflMat[iMotor][4] * ((int32_t)(command[iMotor]-_param.minPwm[iMotor]));
+		torque_B.z += _param.inflMat[iMotor][5] * ((int32_t)(command[iMotor]-_param.minPwm[iMotor]));
 	}
 
 	force_B(

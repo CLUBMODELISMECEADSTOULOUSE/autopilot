@@ -32,6 +32,7 @@ public:
 		int32_t frcMaxNeg_B[MODULATOR_AXIS_NB];
 		int32_t trqMaxPos_B[MODULATOR_AXIS_NB];
 		int32_t trqMaxNeg_B[MODULATOR_AXIS_NB];
+		uint16_t minPwm[CNF_NB_MOTORS];
 	} Parameter;
 
 public:

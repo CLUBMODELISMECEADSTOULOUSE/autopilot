@@ -16,6 +16,7 @@ namespace autom {
 class ModulatorLut : public Modulator {
 public:
 	typedef struct {
+		Modulator::Parameter mod;
 		int32_t lutTrq[2][3][CNF_NB_MOTORS];
 		int32_t lutFrc[2][3][CNF_NB_MOTORS];
 	} Parameter;
@@ -23,7 +24,6 @@ public:
 public:
 
 	ModulatorLut(
-			const Modulator::Parameter& paramSuper,
 			const ModulatorLut::Parameter& param);
 	virtual ~ModulatorLut();
 
