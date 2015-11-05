@@ -22,4 +22,5 @@ void FdirManager::signalMissingCycles(uint8_t missedCount)
 {
 
 }
+
 } /* namespace fdir */

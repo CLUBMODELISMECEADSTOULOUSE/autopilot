@@ -22,11 +22,11 @@
 #endif
 
 #ifndef GCS_PERIOD_PARAM_MS
-#define GCS_PERIOD_PARAM_MS (25)
+#define GCS_PERIOD_PARAM_MS (100)
 #endif
 
 #ifndef GCS_PERIOD_MISSION_MS
-#define GCS_PERIOD_MISSION_MS (25)
+#define GCS_PERIOD_MISSION_MS (100)
 #endif
 
 #ifndef GCS_SYSTEM_ID

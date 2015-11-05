@@ -19,7 +19,7 @@
 namespace autom {
 
 
-SimpleAttitudeKalmanFilter::SimpleAttitudeKalmanFilter()
+SimpleAttitudeKalmanFilter::SimpleAttitudeKalmanFilter(const Parameter& param)
 : _nbMissGyroMeas(0),
   _nbMissAccoMeas(0),
   _nbMissCompassMeas(0),
@@ -29,7 +29,8 @@ SimpleAttitudeKalmanFilter::SimpleAttitudeKalmanFilter()
   _isAttInitialized(false),
   _isPosInitialized(false),
   _drift_B(0.,0.,0.),
-  _magDir_I(1.,0.,0.)
+  _magDir_I(1.,0.,0.),
+  _param(param)
 {
 }
 
@@ -57,7 +58,8 @@ void SimpleAttitudeKalmanFilter::update()
 	system::DataPool& dataPool = system::system.dataPool;
 
 	/* Check measurements */
-	checkMeasurements();
+	if (!_isAttInitialized)
+		checkMeasurements();
 
 	if (!_isAttInitialized)
 		return;
@@ -72,20 +74,12 @@ void SimpleAttitudeKalmanFilter::update()
 	{
 		dataPool.estRate_B = dataPool.imuRate_B + _drift_B;
 		math::Vector3f angInc = dataPool.estRate_B * (0.5 * FSW_TASK_CTRL_PERIOD_TICK_PER_SEC);;
-//		math::Quaternion dQ(
-//				1,
-//				angInc.x,
-//				angInc.y,
-//				angInc.z);
-//
-//		dQ /= dQ.norm();
 		math::Quaternion dQ(
 				1 - (angInc*angInc) * 0.5,
 				angInc.x - angInc.x*angInc.x*angInc.x * 0.1666667,
 				angInc.y - angInc.y*angInc.y*angInc.y * 0.1666667,
 				angInc.z - angInc.z*angInc.z*angInc.z * 0.1666667);
 		quatAttPred_IB = dataPool.estAtt_IB * dQ;
-		// quatAttPred_IB /= quatAttPred_IB.norm();
 		_attEstInvNrmPrev = quatAttPred_IB.normalize(1, _attEstInvNrmPrev);
 	}
 
@@ -106,8 +100,8 @@ void SimpleAttitudeKalmanFilter::update()
 		math::Vector3f accDir_B(dataPool.imuAcc_B);
 		accDir_B /= accDir_B.norm();
 		math::Vector3f innov_B = (accDir_B % accDir_B_pred) ;
-		innovAngle += innov_B * (0.5 * EST_GAIN_ACCO_ANGLE);
-		innovDrift += innov_B * EST_GAIN_ACCO_DRIFT;
+		innovAngle += innov_B * (0.5 * _param.gainAttAngAcco);
+		innovDrift += innov_B * _param.gainAttDriftAcco;
 	}
 
 	/* Compute attitude innovation from compass */
@@ -115,15 +109,14 @@ void SimpleAttitudeKalmanFilter::update()
 	{
 		math::Vector3f magDirPred_B = quatAttPred_IB.rotateQconjVQ(_magDir_I);
 		math::Vector3f innov_B = (dataPool.compassMag_B % magDirPred_B) / dataPool.compassMag_B.norm() ;
-		innovAngle += innov_B * (0.5 * EST_GAIN_COMPASS_ANGLE);
-		innovDrift += innov_B * EST_GAIN_COMPASS_DRIFT;
+		innovAngle += innov_B * (0.5 * _param.gainAttAngCompass);
+		innovDrift += innov_B * _param.gainAttDriftCompass;
 	}
 
 	/* Correct attitude using innovations */
 	{
 		math::Quaternion qCorr(1., innovAngle);
 		dataPool.estAtt_IB = quatAttPred_IB*qCorr;
-//		dataPool.estAtt_IB /= dataPool.estAtt_IB.norm();
 		_attEstInvNrmPrev = dataPool.estAtt_IB.normalize(1, _attEstInvNrmPrev);
 		dataPool.estAtt_IB.to_dcm(dataPool.estDcm_IB);
 	}
@@ -197,10 +190,10 @@ void SimpleAttitudeKalmanFilter::checkMeasurements()
 	/* Check measurements from Imu */
 	if (dataPool.imuLastMeasDateUsec + (FSW_TASK_CTRL_PERIOD_TICK_PER_MSEC*1000) < now)
 	{
-		if (++_nbMissGyroMeas > EST_MAX_CONSECUTIVE_MISSING_MEAS_GYRO)
+		if ((++_nbMissGyroMeas) > EST_MAX_CONSECUTIVE_MISSING_MEAS_GYRO)
 			dataPool.estAttValid = false;
 
-		if (++_nbMissAccoMeas > EST_MAX_CONSECUTIVE_MISSING_MEAS_ACCO)
+		if ((++_nbMissAccoMeas) > EST_MAX_CONSECUTIVE_MISSING_MEAS_ACCO)
 			dataPool.estAttValid = false;
 	}
 	else
@@ -210,7 +203,7 @@ void SimpleAttitudeKalmanFilter::checkMeasurements()
 	}
 
 	/* Check compass */
-	if (dataPool.compassLastMeasDateUsec + (FSW_TASK_CTRL_PERIOD_TICK_PER_MSEC*1000) < now)
+	if ((dataPool.compassLastMeasDateUsec + (FSW_TASK_CTRL_PERIOD_TICK_PER_MSEC*1000)) < now)
 	{
 		if (++_nbMissCompassMeas > EST_MAX_CONSECUTIVE_MISSING_MEAS_COMPASS)
 			dataPool.estAttValid = false;

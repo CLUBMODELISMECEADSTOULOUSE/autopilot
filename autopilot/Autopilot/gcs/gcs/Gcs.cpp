@@ -137,42 +137,42 @@ void Gcs::handleMessageRequestDataStream(uint8_t sysid, uint8_t compId, const ma
 		{
 
 		case MAV_DATA_STREAM_ALL:
-			_streamRateRawSensors.start(packet.req_message_rate);
-			_streamRateExtendedStatus.start(packet.req_message_rate);
+//			_streamRateRawSensors.start(packet.req_message_rate);
+//			_streamRateExtendedStatus.start(packet.req_message_rate);
 			_streamRateRCChannels.start(packet.req_message_rate);
-			_streamRateRawController.start(packet.req_message_rate);
-			_streamRatePosition.start(packet.req_message_rate);
-			_streamRateExtra1.start(packet.req_message_rate);
-			_streamRateExtra2.start(packet.req_message_rate);
-			_streamRateExtra3.start(packet.req_message_rate);
+//			_streamRateRawController.start(packet.req_message_rate);
+//			_streamRatePosition.start(packet.req_message_rate);
+//			_streamRateExtra1.start(packet.req_message_rate);
+//			_streamRateExtra2.start(packet.req_message_rate);
+//			_streamRateExtra3.start(packet.req_message_rate);
 			break;
 
 		case MAV_DATA_STREAM_RAW_SENSORS:
-			_streamRateRawSensors.start(packet.req_message_rate);
+//			_streamRateRawSensors.start(packet.req_message_rate);
 			break;
 		case MAV_DATA_STREAM_EXTENDED_STATUS:
-			_streamRateExtendedStatus.start(packet.req_message_rate);
+//			_streamRateExtendedStatus.start(packet.req_message_rate);
 			break;
 		case MAV_DATA_STREAM_RC_CHANNELS:
 			_streamRateRCChannels.start(packet.req_message_rate);
 			break;
 		case MAV_DATA_STREAM_RAW_CONTROLLER:
-			_streamRateRawController.start(packet.req_message_rate);
+//			_streamRateRawController.start(packet.req_message_rate);
 			break;
 		//case MAV_DATA_STREAM_RAW_SENSOR_FUSION:
 		//	streamRateRawSensorFusion.set_and_save(freq);
 		//	break;
 		case MAV_DATA_STREAM_POSITION:
-			_streamRatePosition.start(packet.req_message_rate);
+//			_streamRatePosition.start(packet.req_message_rate);
 			break;
 		case MAV_DATA_STREAM_EXTRA1:
-			_streamRateExtra1.start(packet.req_message_rate);
+//			_streamRateExtra1.start(packet.req_message_rate);
 			break;
 		case MAV_DATA_STREAM_EXTRA2:
-			_streamRateExtra2.start(packet.req_message_rate);
+//			_streamRateExtra2.start(packet.req_message_rate);
 			break;
 		case MAV_DATA_STREAM_EXTRA3:
-			_streamRateExtra3.start(packet.req_message_rate);
+//			_streamRateExtra3.start(packet.req_message_rate);
 			break;
 		default:
 			// unsupported

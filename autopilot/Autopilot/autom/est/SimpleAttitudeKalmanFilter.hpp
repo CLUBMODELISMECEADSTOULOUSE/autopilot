@@ -14,7 +14,20 @@ namespace autom {
 
 class SimpleAttitudeKalmanFilter {
 public:
-	SimpleAttitudeKalmanFilter();
+	typedef struct
+	{
+		float gainAttAngAcco;
+		float gainAttDriftAcco;
+		float gainAttAngCompass;
+		float gainAttDriftCompass;
+	} Parameter ;
+
+	typedef enum
+	{
+	} Step;
+
+public:
+	SimpleAttitudeKalmanFilter(const Parameter& param);
 	virtual ~SimpleAttitudeKalmanFilter();
 
 	/** @brief Init the process */
@@ -55,6 +68,8 @@ protected:
 
 	math::Vector3f _drift_B;
 	math::Vector3f _magDir_I;
+
+	const Parameter& _param;
 };
 
 } /* namespace autom */
