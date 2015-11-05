@@ -54,13 +54,19 @@ void AttitudeController::execute()
 	system::system.dataPool.ctrlAttRateErrB = rateDem_B - rateEst_B;
 
 	{
+		/* Compute error performed on the command realisation */
+		math::Vector3f errCmd(
+				ldexpf((float)(system::system.dataPool.ctrlTrqDemB.x - system::system.dataPool.estTorque_B.x), -SCALE_TORSOR),
+				ldexpf((float)(system::system.dataPool.ctrlTrqDemB.y - system::system.dataPool.estTorque_B.y), -SCALE_TORSOR),
+				ldexpf((float)(system::system.dataPool.ctrlTrqDemB.z - system::system.dataPool.estTorque_B.z), -SCALE_TORSOR));
+
 		/* Compute controller */
 		math::Vector3f ctrlTrqDemB;
-		math::Vector3f nullVect;
+
 		_ctrl.computeCommand(
 				system::system.dataPool.ctrlAttAngErrB,
 				system::system.dataPool.ctrlAttRateErrB,
-				nullVect,
+				errCmd,
 				ctrlTrqDemB);
 
 		/* filter the control torque */
