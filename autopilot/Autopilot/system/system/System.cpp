@@ -20,8 +20,14 @@
 
 namespace system {
 
-
-const autom::Modulator::Parameter paramMod = {
+#ifdef MODULATORPINV
+autom::ModulatorPinv::DescentVector paramModModDesc = {};
+autom::ModulatorPinv::PInvInflMat paramModModPInv = {};
+#else
+const autom::ModulatorLut::Parameter paramMod =
+{
+	/* mod */
+	{
 		K_MOD_INFLMAT,
 		/* frcMaxPos_B */
 		K_MOD_FMAXPOS,
@@ -30,15 +36,10 @@ const autom::Modulator::Parameter paramMod = {
 		/* trqMaxPos_B */
 		K_MOD_TMAXPOS,
 		/* trqMaxNeg_B */
-		K_MOD_TMAXNEG
-};
-
-#ifdef MODULATORPINV
-autom::ModulatorPinv::DescentVector paramModModDesc = {};
-autom::ModulatorPinv::PInvInflMat paramModModPInv = {};
-#else
-const autom::ModulatorLut::Parameter paramModLut =
-{
+		K_MOD_TMAXNEG,
+		/* minPwm */
+		K_MOD_MIN
+	},
 	/* lutTrq */
 	K_MOD_LUTTRQ,
 	/* lutFrc */
@@ -90,7 +91,46 @@ const attitude::AttitudeManager::Parameter attMgrParam =
 				/* maxCosAngOverTwoErr */
 				K_ATTCTRL_MAXERRCOS,
 				/* maxSinAngOverTwoErr */
-				K_ATTCTRL_MAXERRSIN
+				K_ATTCTRL_MAXERRSIN,
+				/* filterX */
+				{
+						/* a0 */
+						K_ATTCTRL_FILT_X_NUM_0,
+						/* a1 */
+						K_ATTCTRL_FILT_X_NUM_1,
+						/* a2 */
+						K_ATTCTRL_FILT_X_NUM_2,
+						/* -b1 */
+						-K_ATTCTRL_FILT_X_DEN_1,
+						/* -b2 */
+						-K_ATTCTRL_FILT_X_DEN_2,
+				},
+				/* filterY */
+				{
+						/* a0 */
+						K_ATTCTRL_FILT_Y_NUM_0,
+						/* a1 */
+						K_ATTCTRL_FILT_Y_NUM_1,
+						/* a2 */
+						K_ATTCTRL_FILT_Y_NUM_2,
+						/* -b1 */
+						-K_ATTCTRL_FILT_Y_DEN_1,
+						/* -b2 */
+						-K_ATTCTRL_FILT_Y_DEN_2,
+				},
+				/* filterZ */
+				{
+						/* a0 */
+						K_ATTCTRL_FILT_Z_NUM_0,
+						/* a1 */
+						K_ATTCTRL_FILT_Z_NUM_1,
+						/* a2 */
+						K_ATTCTRL_FILT_Z_NUM_2,
+						/* -b1 */
+						-K_ATTCTRL_FILT_Z_DEN_1,
+						/* -b2 */
+						-K_ATTCTRL_FILT_Z_DEN_2,
+				}
 		}
 } ;
 
@@ -140,7 +180,7 @@ const navigation::NavigationManager::Parameter navMgrParam =
 		/* paramDirectThrust */
 		{
 				/* unitThrust */
-				{0, 0, 1755546}
+				{0, 0, -31293}
 		},
 } ;
 
@@ -154,6 +194,23 @@ const hw::Radio::Parameter paramRadio =
 		{MIN_PULSEWIDTH, MIN_PULSEWIDTH, MIN_PULSEWIDTH, MIN_PULSEWIDTH, MIN_PULSEWIDTH, MIN_PULSEWIDTH, MIN_PULSEWIDTH, MIN_PULSEWIDTH},
 		/* pwmMax */
 		{MAX_PULSEWIDTH, MAX_PULSEWIDTH, MAX_PULSEWIDTH, MAX_PULSEWIDTH, MAX_PULSEWIDTH, MAX_PULSEWIDTH, MAX_PULSEWIDTH, MAX_PULSEWIDTH}
+};
+
+const system::Dynamics::Parameter paramDyn = {
+		{0.100,0.100,0.200},
+		{0.000,0.000,0.000}
+};
+
+const autom::SimpleAttitudeKalmanFilter::Parameter paramEst =
+{
+		/* gainAttAngAcco */
+		EST_GAIN_ACCO_ANGLE,
+		/* gainAttDriftAcco */
+		EST_GAIN_ACCO_DRIFT,
+		/* gainAttAngCompass */
+		EST_GAIN_COMPASS_ANGLE,
+		/* gainAttDriftCompass */
+		EST_GAIN_COMPASS_DRIFT
 };
 
 /** @brief Handlers for COM0 interrupts */
@@ -180,16 +237,15 @@ System::System()
   _paramMgt(info, paramCount),
   _mavChannel(MAVLINK_COMM_0,_com0),
   _gcs(MAVLINK_COMM_0),
-  _estimator(),
+  _estimator(paramEst),
 #ifdef MODULATORPINV
 #else
-  _modulator(
-			paramMod,
-			paramModLut),
+  _modulator(paramMod),
 #endif
   _attMgr(attMgrParam),
   _navMgr(navMgrParam),
-  _timerArmMgt(0)
+  _timerArmMgt(0),
+  _dyn(paramDyn)
 {
 
 }
@@ -250,6 +306,12 @@ void System::initialize()
 
 	/* pwm */
 	_pwm.initialize();
+
+	/* Set fast output (400Hz) */
+	for (uint8_t iChannel = 0 ; iChannel<8 ; iChannel++)
+	{
+		_pwm.setFastOutputChannels(_BV(CH_1), 400);
+	}
 
 	/* Estimator */
 	_estimator.initialize();
@@ -348,10 +410,10 @@ void System::executeReadyMode()
 //			_radio.getUnsigned(RADIO_IDX_THRUST),
 //			_radio.getSigned(RADIO_IDX_YAW));
 //	mavlink_msg_statustext_send(MAVLINK_COMM_0, MAV_SEVERITY_INFO, message);
-	verifCond = verifCond && (math_abs(_radio.getSigned(RADIO_IDX_ROLL))<100);
-	verifCond = verifCond && (math_abs(_radio.getSigned(RADIO_IDX_PITCH))<100);
-	verifCond = verifCond && (_radio.getUnsigned(RADIO_IDX_THRUST)<100);
-	verifCond = verifCond && ((_radio.getSignedMaxVal(RADIO_IDX_YAW)-100)<=_radio.getSigned(RADIO_IDX_YAW));
+	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_ROLL))<100);
+	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_PITCH))<100);
+	verifCond = verifCond && (_radio.getUnsigned(hw::Radio::E_RADIO_CHANNEL_THRUST)<100);
+	verifCond = verifCond && ((_radio.getSignedMaxVal(hw::Radio::E_RADIO_CHANNEL_YAW)-100)<=_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_YAW));
 	// TODO add control mode verification (today only stabilized)
 
 	/* Timer management */
@@ -406,10 +468,10 @@ void System::executeArmedMode()
 //			_radio.getUnsigned(RADIO_IDX_THRUST),
 //			_radio.getSigned(RADIO_IDX_YAW));
 //	mavlink_msg_statustext_send(MAVLINK_COMM_0, MAV_SEVERITY_INFO, message);
-	verifCond = verifCond && (math_abs(_radio.getSigned(RADIO_IDX_ROLL))<100);
-	verifCond = verifCond && (math_abs(_radio.getSigned(RADIO_IDX_PITCH))<100);
-	verifCond = verifCond && (_radio.getUnsigned(RADIO_IDX_THRUST)<100);
-	verifCond = verifCond && (math_abs(_radio.getSigned(RADIO_IDX_YAW))<100);
+	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_ROLL))<100);
+	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_PITCH))<100);
+	verifCond = verifCond && (_radio.getUnsigned(hw::Radio::E_RADIO_CHANNEL_THRUST)<100);
+	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_YAW))<100);
 	// TODO add control mode verification (today only stabilized)
 
 	/* Timer management */
@@ -485,6 +547,15 @@ bool System::switchToReadyMode()
 	/* reset counter */
 	_timerArmMgt = 0;
 
+	/* Set attitude and nav manager to none mode */
+	_attMgr.setMode(attitude::AttitudeManager::E_ATT_MODE_NONE);
+	_navMgr.setMode(navigation::NavigationManager::E_NAV_MODE_NONE);
+
+	/* Arm motors */
+	disarmMotor();
+	dataPool.ctrlTrqDemB(0.,0.,0.);
+	dataPool.ctrlFrcDemB(0.,0.,0.);
+
 	return true;
 }
 
@@ -494,7 +565,7 @@ bool System::switchToArmedMode()
 	bool result = true;
 
 	/* Switch the attitude and nav to demanded modes */
-	result &= _attMgr.getGuidanceManager().setMode(attitude::AttitudeGuidanceManager::E_MODE_AUTOSTAB_NOYAW);
+	result &= _attMgr.setMode(attitude::AttitudeManager::E_ATT_MODE_STABNOYAW);
 	result &= _navMgr.setMode(navigation::NavigationManager::E_NAV_MODE_DIRECTTHRUST);
 
 	if (result)
@@ -588,7 +659,7 @@ void System::processEstimation()
 /** @brief Process actuators */
 void System::processActuators()
 {
-	if (_radio.getUnsigned(RADIO_IDX_THRUST) < 50)
+	if (_radio.getUnsigned(hw::Radio::E_RADIO_CHANNEL_THRUST) < 50)
 	{
 		/* Inhibit motors when radio thrust is set to zero */
 		for (uint8_t iMotor=0 ; iMotor<CNF_NB_MOTORS ; iMotor++)
@@ -644,7 +715,7 @@ void System::disarmMotor()
 	for (uint8_t iMotor=0 ; iMotor<CNF_NB_MOTORS ; iMotor++)
 	{
 		dataPool.pwm_outputs[iMotor] = MIN_PULSEWIDTH;
-		_pwm.write(iMotor, dataPool.pwm_outputs[iMotor]);
+		_pwm.write(iMotor, 0);
 		_pwm.disable_out(iMotor);
 	}
 }
@@ -675,9 +746,129 @@ PROGMEM const mavlink::ParameterMgt::ParamInfo info[] = {
 		PARAM(UINT16,"RD_ZERO_5", (void*)&paramRadio.pwmZero[5], (MAX_PULSEWIDTH+MIN_PULSEWIDTH)>>1),
 		PARAM(UINT16,"RD_ZERO_6", (void*)&paramRadio.pwmZero[6], (MAX_PULSEWIDTH+MIN_PULSEWIDTH)>>1),
 		PARAM(UINT16,"RD_ZERO_7", (void*)&paramRadio.pwmZero[7], (MAX_PULSEWIDTH+MIN_PULSEWIDTH)>>1),
-		PARAM(UINT16,"RD_REVERS", (void*)&paramRadio.reversed, 0)
+		PARAM(UINT16,"RD_REVERS", (void*)&paramRadio.reversed, 0),
+		PARAM(REAL32,"ATT_KP_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].Kp, K_ATTCTRL_KP_0),
+		PARAM(REAL32,"ATT_KP_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].Kp, K_ATTCTRL_KP_1),
+		PARAM(REAL32,"ATT_KP_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].Kp, K_ATTCTRL_KP_2),
+		PARAM(REAL32,"ATT_KD_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].Kd, K_ATTCTRL_KD_0),
+		PARAM(REAL32,"ATT_KD_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].Kd, K_ATTCTRL_KD_1),
+		PARAM(REAL32,"ATT_KD_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].Kd, K_ATTCTRL_KD_2),
+		PARAM(REAL32,"ATT_KI_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].Ki, K_ATTCTRL_KI_0),
+		PARAM(REAL32,"ATT_KI_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].Ki, K_ATTCTRL_KI_1),
+		PARAM(REAL32,"ATT_KI_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].Ki, K_ATTCTRL_KI_2),
+		PARAM(REAL32,"ATT_MAXI_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].maxI, K_ATTCTRL_MAXI_0),
+		PARAM(REAL32,"ATT_MAXI_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].maxI, K_ATTCTRL_MAXI_1),
+		PARAM(REAL32,"ATT_MAXI_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].maxI, K_ATTCTRL_MAXI_2),
+		PARAM(REAL32,"ATT_FX_N0", (void*)&attMgrParam.ctrl.filterX.a0, K_ATTCTRL_FILT_X_NUM_0),
+		PARAM(REAL32,"ATT_FX_N1", (void*)&attMgrParam.ctrl.filterX.a1, K_ATTCTRL_FILT_X_NUM_1),
+		PARAM(REAL32,"ATT_FX_N2", (void*)&attMgrParam.ctrl.filterX.a2, K_ATTCTRL_FILT_X_NUM_2),
+		PARAM(REAL32,"ATT_FX_D1", (void*)&attMgrParam.ctrl.filterX.b1, -K_ATTCTRL_FILT_X_DEN_1),
+		PARAM(REAL32,"ATT_FX_D2", (void*)&attMgrParam.ctrl.filterX.b2, -K_ATTCTRL_FILT_X_DEN_2),
+		PARAM(REAL32,"ATT_FY_N0", (void*)&attMgrParam.ctrl.filterY.a0, K_ATTCTRL_FILT_Y_NUM_0),
+		PARAM(REAL32,"ATT_FY_N1", (void*)&attMgrParam.ctrl.filterY.a1, K_ATTCTRL_FILT_Y_NUM_1),
+		PARAM(REAL32,"ATT_FY_N2", (void*)&attMgrParam.ctrl.filterY.a2, K_ATTCTRL_FILT_Y_NUM_2),
+		PARAM(REAL32,"ATT_FY_D1", (void*)&attMgrParam.ctrl.filterY.b1, -K_ATTCTRL_FILT_Y_DEN_1),
+		PARAM(REAL32,"ATT_FY_D2", (void*)&attMgrParam.ctrl.filterY.b2, -K_ATTCTRL_FILT_Y_DEN_2),
+		PARAM(REAL32,"ATT_FZ_N0", (void*)&attMgrParam.ctrl.filterZ.a0, K_ATTCTRL_FILT_Z_NUM_0),
+		PARAM(REAL32,"ATT_FZ_N1", (void*)&attMgrParam.ctrl.filterZ.a1, K_ATTCTRL_FILT_Z_NUM_1),
+		PARAM(REAL32,"ATT_FZ_N2", (void*)&attMgrParam.ctrl.filterZ.a2, K_ATTCTRL_FILT_Z_NUM_2),
+		PARAM(REAL32,"ATT_FZ_D1", (void*)&attMgrParam.ctrl.filterZ.b1, -K_ATTCTRL_FILT_Z_DEN_1),
+		PARAM(REAL32,"ATT_FZ_D2", (void*)&attMgrParam.ctrl.filterZ.b2, -K_ATTCTRL_FILT_Z_DEN_2),
+		PARAM(INT32,"MOD_IM_FX0", (void*)&paramMod.mod.inflMat[0][0], K_MOD_INFLMAT_0_0),
+		PARAM(INT32,"MOD_IM_FY0", (void*)&paramMod.mod.inflMat[0][1], K_MOD_INFLMAT_0_1),
+		PARAM(INT32,"MOD_IM_FZ0", (void*)&paramMod.mod.inflMat[0][2], K_MOD_INFLMAT_0_2),
+		PARAM(INT32,"MOD_IM_TX0", (void*)&paramMod.mod.inflMat[0][3], K_MOD_INFLMAT_0_3),
+		PARAM(INT32,"MOD_IM_TY0", (void*)&paramMod.mod.inflMat[0][4], K_MOD_INFLMAT_0_4),
+		PARAM(INT32,"MOD_IM_TZ0", (void*)&paramMod.mod.inflMat[0][5], K_MOD_INFLMAT_0_5),
+		PARAM(INT32,"MOD_IM_FX1", (void*)&paramMod.mod.inflMat[1][0], K_MOD_INFLMAT_1_0),
+		PARAM(INT32,"MOD_IM_FY1", (void*)&paramMod.mod.inflMat[1][1], K_MOD_INFLMAT_1_1),
+		PARAM(INT32,"MOD_IM_FZ1", (void*)&paramMod.mod.inflMat[1][2], K_MOD_INFLMAT_1_2),
+		PARAM(INT32,"MOD_IM_TX1", (void*)&paramMod.mod.inflMat[1][3], K_MOD_INFLMAT_1_3),
+		PARAM(INT32,"MOD_IM_TY1", (void*)&paramMod.mod.inflMat[1][4], K_MOD_INFLMAT_1_4),
+		PARAM(INT32,"MOD_IM_TZ1", (void*)&paramMod.mod.inflMat[1][5], K_MOD_INFLMAT_1_5),
+		PARAM(INT32,"MOD_IM_FX2", (void*)&paramMod.mod.inflMat[2][0], K_MOD_INFLMAT_2_0),
+		PARAM(INT32,"MOD_IM_FY2", (void*)&paramMod.mod.inflMat[2][1], K_MOD_INFLMAT_2_1),
+		PARAM(INT32,"MOD_IM_FZ2", (void*)&paramMod.mod.inflMat[2][2], K_MOD_INFLMAT_2_2),
+		PARAM(INT32,"MOD_IM_TX2", (void*)&paramMod.mod.inflMat[2][3], K_MOD_INFLMAT_2_3),
+		PARAM(INT32,"MOD_IM_TY2", (void*)&paramMod.mod.inflMat[2][4], K_MOD_INFLMAT_2_4),
+		PARAM(INT32,"MOD_IM_TZ2", (void*)&paramMod.mod.inflMat[2][5], K_MOD_INFLMAT_2_5),
+		PARAM(INT32,"MOD_IM_FX3", (void*)&paramMod.mod.inflMat[3][0], K_MOD_INFLMAT_3_0),
+		PARAM(INT32,"MOD_IM_FY3", (void*)&paramMod.mod.inflMat[3][1], K_MOD_INFLMAT_3_1),
+		PARAM(INT32,"MOD_IM_FZ3", (void*)&paramMod.mod.inflMat[3][2], K_MOD_INFLMAT_3_2),
+		PARAM(INT32,"MOD_IM_TX3", (void*)&paramMod.mod.inflMat[3][3], K_MOD_INFLMAT_3_3),
+		PARAM(INT32,"MOD_IM_TY3", (void*)&paramMod.mod.inflMat[3][4], K_MOD_INFLMAT_3_4),
+		PARAM(INT32,"MOD_IM_TZ3", (void*)&paramMod.mod.inflMat[3][5], K_MOD_INFLMAT_3_5),
+		PARAM(INT32,"MOD_FMAX_X", (void*)&paramMod.mod.frcMaxPos_B[0], K_MOD_FMAXPOS_0),
+		PARAM(INT32,"MOD_FMAX_Y", (void*)&paramMod.mod.frcMaxPos_B[1], K_MOD_FMAXPOS_1),
+		PARAM(INT32,"MOD_FMAX_Z", (void*)&paramMod.mod.frcMaxPos_B[2], K_MOD_FMAXPOS_2),
+		PARAM(INT32,"MOD_FMIN_X", (void*)&paramMod.mod.frcMaxNeg_B[0], K_MOD_FMAXNEG_0),
+		PARAM(INT32,"MOD_FMIN_Y", (void*)&paramMod.mod.frcMaxNeg_B[1], K_MOD_FMAXNEG_1),
+		PARAM(INT32,"MOD_FMIN_Z", (void*)&paramMod.mod.frcMaxNeg_B[2], K_MOD_FMAXNEG_2),
+		PARAM(INT32,"MOD_TMAX_X", (void*)&paramMod.mod.trqMaxPos_B[0], K_MOD_TMAXPOS_0),
+		PARAM(INT32,"MOD_TMAX_Y", (void*)&paramMod.mod.trqMaxPos_B[1], K_MOD_TMAXPOS_1),
+		PARAM(INT32,"MOD_TMAX_Z", (void*)&paramMod.mod.trqMaxPos_B[2], K_MOD_TMAXPOS_2),
+		PARAM(INT32,"MOD_TMIN_X", (void*)&paramMod.mod.trqMaxNeg_B[0], K_MOD_TMAXNEG_0),
+		PARAM(INT32,"MOD_TMIN_Y", (void*)&paramMod.mod.trqMaxNeg_B[1], K_MOD_TMAXNEG_1),
+		PARAM(INT32,"MOD_TMIN_Z", (void*)&paramMod.mod.trqMaxNeg_B[2], K_MOD_TMAXNEG_2),
+		PARAM(UINT16,"MOD_MIN0", (void*)&paramMod.mod.minPwm[0], K_MOD_MIN0),
+		PARAM(UINT16,"MOD_MIN1", (void*)&paramMod.mod.minPwm[1], K_MOD_MIN1),
+		PARAM(UINT16,"MOD_MIN2", (void*)&paramMod.mod.minPwm[2], K_MOD_MIN2),
+		PARAM(UINT16,"MOD_MIN3", (void*)&paramMod.mod.minPwm[3], K_MOD_MIN3),
+		PARAM(INT32,"MOD_LUT_TXM0", (void*)&paramMod.lutTrq[0][0][0], K_MOD_LUTTRQ_0_0_0),
+		PARAM(INT32,"MOD_LUT_TXM1", (void*)&paramMod.lutTrq[0][0][1], K_MOD_LUTTRQ_0_0_1),
+		PARAM(INT32,"MOD_LUT_TXM2", (void*)&paramMod.lutTrq[0][0][2], K_MOD_LUTTRQ_0_0_2),
+		PARAM(INT32,"MOD_LUT_TXM3", (void*)&paramMod.lutTrq[0][0][3], K_MOD_LUTTRQ_0_0_3),
+		PARAM(INT32,"MOD_LUT_TYM0", (void*)&paramMod.lutTrq[0][1][0], K_MOD_LUTTRQ_0_1_0),
+		PARAM(INT32,"MOD_LUT_TYM1", (void*)&paramMod.lutTrq[0][1][1], K_MOD_LUTTRQ_0_1_1),
+		PARAM(INT32,"MOD_LUT_TYM2", (void*)&paramMod.lutTrq[0][1][2], K_MOD_LUTTRQ_0_1_2),
+		PARAM(INT32,"MOD_LUT_TYM3", (void*)&paramMod.lutTrq[0][1][3], K_MOD_LUTTRQ_0_1_3),
+		PARAM(INT32,"MOD_LUT_TZM0", (void*)&paramMod.lutTrq[0][2][0], K_MOD_LUTTRQ_0_2_0),
+		PARAM(INT32,"MOD_LUT_TZM1", (void*)&paramMod.lutTrq[0][2][1], K_MOD_LUTTRQ_0_2_1),
+		PARAM(INT32,"MOD_LUT_TZM2", (void*)&paramMod.lutTrq[0][2][2], K_MOD_LUTTRQ_0_2_2),
+		PARAM(INT32,"MOD_LUT_TZM3", (void*)&paramMod.lutTrq[0][2][3], K_MOD_LUTTRQ_0_2_3),
+		PARAM(INT32,"MOD_LUT_TXP0", (void*)&paramMod.lutTrq[1][0][0], K_MOD_LUTTRQ_1_0_0),
+		PARAM(INT32,"MOD_LUT_TXP1", (void*)&paramMod.lutTrq[1][0][1], K_MOD_LUTTRQ_1_0_1),
+		PARAM(INT32,"MOD_LUT_TXP2", (void*)&paramMod.lutTrq[1][0][2], K_MOD_LUTTRQ_1_0_2),
+		PARAM(INT32,"MOD_LUT_TXP3", (void*)&paramMod.lutTrq[1][0][3], K_MOD_LUTTRQ_1_0_3),
+		PARAM(INT32,"MOD_LUT_TYP0", (void*)&paramMod.lutTrq[1][1][0], K_MOD_LUTTRQ_1_1_0),
+		PARAM(INT32,"MOD_LUT_TYP1", (void*)&paramMod.lutTrq[1][1][1], K_MOD_LUTTRQ_1_1_1),
+		PARAM(INT32,"MOD_LUT_TYP2", (void*)&paramMod.lutTrq[1][1][2], K_MOD_LUTTRQ_1_1_2),
+		PARAM(INT32,"MOD_LUT_TYP3", (void*)&paramMod.lutTrq[1][1][3], K_MOD_LUTTRQ_1_1_3),
+		PARAM(INT32,"MOD_LUT_TZP0", (void*)&paramMod.lutTrq[1][2][0], K_MOD_LUTTRQ_1_2_0),
+		PARAM(INT32,"MOD_LUT_TZP1", (void*)&paramMod.lutTrq[1][2][1], K_MOD_LUTTRQ_1_2_1),
+		PARAM(INT32,"MOD_LUT_TZP2", (void*)&paramMod.lutTrq[1][2][2], K_MOD_LUTTRQ_1_2_2),
+		PARAM(INT32,"MOD_LUT_TZP3", (void*)&paramMod.lutTrq[1][2][3], K_MOD_LUTTRQ_1_2_3),
+		PARAM(INT32,"MOD_LUT_FXM0", (void*)&paramMod.lutFrc[0][0][0], K_MOD_LUTFRC_0_0_0),
+		PARAM(INT32,"MOD_LUT_FXM1", (void*)&paramMod.lutFrc[0][0][1], K_MOD_LUTFRC_0_0_1),
+		PARAM(INT32,"MOD_LUT_FXM2", (void*)&paramMod.lutFrc[0][0][2], K_MOD_LUTFRC_0_0_2),
+		PARAM(INT32,"MOD_LUT_FXM3", (void*)&paramMod.lutFrc[0][0][3], K_MOD_LUTFRC_0_0_3),
+		PARAM(INT32,"MOD_LUT_FYM0", (void*)&paramMod.lutFrc[0][1][0], K_MOD_LUTFRC_0_1_0),
+		PARAM(INT32,"MOD_LUT_FYM1", (void*)&paramMod.lutFrc[0][1][1], K_MOD_LUTFRC_0_1_1),
+		PARAM(INT32,"MOD_LUT_FYM2", (void*)&paramMod.lutFrc[0][1][2], K_MOD_LUTFRC_0_1_2),
+		PARAM(INT32,"MOD_LUT_FYM3", (void*)&paramMod.lutFrc[0][1][3], K_MOD_LUTFRC_0_1_3),
+		PARAM(INT32,"MOD_LUT_FZM0", (void*)&paramMod.lutFrc[0][2][0], K_MOD_LUTFRC_0_2_0),
+		PARAM(INT32,"MOD_LUT_FZM1", (void*)&paramMod.lutFrc[0][2][1], K_MOD_LUTFRC_0_2_1),
+		PARAM(INT32,"MOD_LUT_FZM2", (void*)&paramMod.lutFrc[0][2][2], K_MOD_LUTFRC_0_2_2),
+		PARAM(INT32,"MOD_LUT_FZM3", (void*)&paramMod.lutFrc[0][2][3], K_MOD_LUTFRC_0_2_3),
+		PARAM(INT32,"MOD_LUT_FXP0", (void*)&paramMod.lutFrc[1][0][0], K_MOD_LUTFRC_1_0_0),
+		PARAM(INT32,"MOD_LUT_FXP1", (void*)&paramMod.lutFrc[1][0][1], K_MOD_LUTFRC_1_0_1),
+		PARAM(INT32,"MOD_LUT_FXP2", (void*)&paramMod.lutFrc[1][0][2], K_MOD_LUTFRC_1_0_2),
+		PARAM(INT32,"MOD_LUT_FXP3", (void*)&paramMod.lutFrc[1][0][3], K_MOD_LUTFRC_1_0_3),
+		PARAM(INT32,"MOD_LUT_FYP0", (void*)&paramMod.lutFrc[1][1][0], K_MOD_LUTFRC_1_1_0),
+		PARAM(INT32,"MOD_LUT_FYP1", (void*)&paramMod.lutFrc[1][1][1], K_MOD_LUTFRC_1_1_1),
+		PARAM(INT32,"MOD_LUT_FYP2", (void*)&paramMod.lutFrc[1][1][2], K_MOD_LUTFRC_1_1_2),
+		PARAM(INT32,"MOD_LUT_FYP3", (void*)&paramMod.lutFrc[1][1][3], K_MOD_LUTFRC_1_1_3),
+		PARAM(INT32,"MOD_LUT_FZP0", (void*)&paramMod.lutFrc[1][2][0], K_MOD_LUTFRC_1_2_0),
+		PARAM(INT32,"MOD_LUT_FZP1", (void*)&paramMod.lutFrc[1][2][1], K_MOD_LUTFRC_1_2_1),
+		PARAM(INT32,"MOD_LUT_FZP2", (void*)&paramMod.lutFrc[1][2][2], K_MOD_LUTFRC_1_2_2),
+		PARAM(INT32,"MOD_LUT_FZP3", (void*)&paramMod.lutFrc[1][2][3], K_MOD_LUTFRC_1_2_3),
+		PARAM(REAL32,"EA_ANG_ACC", (void*)&paramEst.gainAttAngAcco, EST_GAIN_ACCO_ANGLE),
+		PARAM(REAL32,"EA_DRI_ACC", (void*)&paramEst.gainAttDriftAcco, EST_GAIN_ACCO_DRIFT),
+		PARAM(REAL32,"EA_ANG_CMP", (void*)&paramEst.gainAttAngCompass, EST_GAIN_COMPASS_ANGLE),
+		PARAM(REAL32,"EA_DRI_CMP", (void*)&paramEst.gainAttDriftCompass, EST_GAIN_COMPASS_DRIFT)
 };
-uint16_t paramCount = 25;
+
+uint16_t paramCount = 144;
 
 
 System system = System();

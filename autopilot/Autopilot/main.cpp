@@ -12,12 +12,7 @@
 #include <gcs/channel/SerialChannel.hpp>
 
 
-system::ControlCyclicTask taskControl(
-		(const signed char*)"CTRL",
-		(unsigned portSHORT)650,
-		(unsigned portBASE_TYPE)2,
-		FSW_TASK_CTRL_PERIOD_TICK,
-        1);
+system::ControlCyclicTask taskControl;
 
 int main(int argc, char **argv)
 {

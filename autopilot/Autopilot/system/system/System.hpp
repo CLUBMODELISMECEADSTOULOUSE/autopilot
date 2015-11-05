@@ -39,6 +39,9 @@
 #include <nav/mgt/NavigationManager.hpp>
 
 #include <system/system/DataPool.hpp>
+#include <system/params/Dynamics.hpp>
+
+#include <fdir/mgt/FdirManager.hpp>
 
 #ifndef SERIAL0_RX_LEN
 #define SERIAL0_RX_LEN (256)
@@ -142,6 +145,11 @@ public:
 	/** @brief Getter method for radio service */
 	inline hw::Radio& getRadio();
 
+	/** @brief Getter method for dynamics */
+	inline const system::Dynamics& getDynamics() const ;
+
+	/** @brief FDIR manager */
+	fdir::FdirManager& getFdir();
 
 	/* ----- Motors ----------------------------------- */
 protected:
@@ -245,6 +253,13 @@ protected:
 
 	/** @brief arm/disarm timer */
 	uint16_t _timerArmMgt;
+
+	/** @brief Dynamics */
+	Dynamics _dyn;
+
+	/** @brief FDIR manager */
+	fdir::FdirManager _fdir;
+
 };
 
 hw::Serial& System::getCom0()
@@ -300,6 +315,17 @@ System::Mode System::getMode()
 	return _mode;
 }
 
+/** @brief Getter method for dynamics */
+inline const system::Dynamics& System::getDynamics() const
+{
+	return _dyn;
+}
+
+/** @brief Getter method for dynamics */
+inline fdir::FdirManager& System::getFdir()
+{
+	return _fdir;
+}
 
 extern System system;
 extern PROGMEM const mavlink::ParameterMgt::ParamInfo info[];
