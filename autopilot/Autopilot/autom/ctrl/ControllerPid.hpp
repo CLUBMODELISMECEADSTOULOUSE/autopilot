@@ -63,6 +63,7 @@ public:
 	virtual void computeCommand(
 			const T& ctrlErr,
 			const T& derivCtrlErr,
+			const T& errCommandPrev,
 			T& command);
 
 	inline void setParam(const Parameter& param);
@@ -112,8 +113,20 @@ template<typename T>
 void ControllerPid<T>::computeCommand(
 		const T& ctrlErr,
 		const T& derivCtrlErr,
+		const T& errCommandPrev,
 		T& command)
 {
+	/* 0) Anti windup
+	 * Remove command error from integral term
+	 */
+	if (_intCtrlErr<0)
+	{
+		_intCtrlErr = math_max(0,errCommandPrev-_intCtrlErr);
+	}
+	else
+	{
+		_intCtrlErr = math_max(0,_intCtrlErr-errCommandPrev);
+	}
 
 	/* 1) Compute integral term */
 	_intCtrlErr +=  this->_param.Ki * ctrlErr;

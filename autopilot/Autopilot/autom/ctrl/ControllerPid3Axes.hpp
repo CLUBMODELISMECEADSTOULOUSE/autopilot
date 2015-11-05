@@ -34,6 +34,7 @@ public:
 	virtual void computeCommand(
 			const math::Vector3<T>& ctrlErr,
 			const math::Vector3<T>& derivCtrlErr,
+			const math::Vector3<T>& errCommandPrev,
 			math::Vector3<T>& command);
 
 protected:
@@ -94,12 +95,13 @@ template <typename T>
 void ControllerPid3Axes<T>::computeCommand(
 		const math::Vector3<T>& ctrlErr,
 		const math::Vector3<T>& derivCtrlErr,
+		const math::Vector3<T>& errCommandPrev,
 		math::Vector3<T>& command)
 {
 	/* Execute the contollers */
-	_ctrl_x.computeCommand(ctrlErr.x, derivCtrlErr.x, command.x);
-	_ctrl_y.computeCommand(ctrlErr.y, derivCtrlErr.y, command.y);
-	_ctrl_z.computeCommand(ctrlErr.z, derivCtrlErr.z, command.z);
+	_ctrl_x.computeCommand(ctrlErr.x, derivCtrlErr.x, errCommandPrev.x, command.x);
+	_ctrl_y.computeCommand(ctrlErr.y, derivCtrlErr.y, errCommandPrev.y, command.y);
+	_ctrl_z.computeCommand(ctrlErr.z, derivCtrlErr.z, errCommandPrev.z, command.z);
 }
 
 } /* namespace autom */
