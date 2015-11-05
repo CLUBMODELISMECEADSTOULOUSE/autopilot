@@ -16,7 +16,7 @@ AttitudeController::AttitudeController(const AttitudeController::Parameter& para
   _param(param),
   _filterX(param.filterX),
   _filterY(param.filterY),
-  _filterZ(param.filterZ)
+  _filterZ(param.filterZ)//,
 {
 }
 
@@ -30,8 +30,6 @@ void AttitudeController::execute()
 	const math::Vector3f& rateEst_B = system::system.dataPool.estRate_B;
 	const math::Quaternion& qDem_IB = system::system.dataPool.guidAtt_IB;
 	const math::Vector3f& rateDem_B = system::system.dataPool.guidRate_B;
-//	const math::Quaternion qDem_IB(1.,0.,0.,0.);
-//	const math::Vector3f rateDem_B(0.,0.,0.);
 
 	/* Attitude error computed as the conj(qEst)*qDem */
 	{
@@ -58,9 +56,11 @@ void AttitudeController::execute()
 	{
 		/* Compute controller */
 		math::Vector3f ctrlTrqDemB;
+		math::Vector3f nullVect;
 		_ctrl.computeCommand(
 				system::system.dataPool.ctrlAttAngErrB,
 				system::system.dataPool.ctrlAttRateErrB,
+				nullVect,
 				ctrlTrqDemB);
 
 		/* filter the control torque */
@@ -75,22 +75,7 @@ void AttitudeController::execute()
 				(int32_t) ldexpf(ctrlTrqDemB.y, SCALE_TORSOR),
 				(int32_t) ldexpf(ctrlTrqDemB.z, SCALE_TORSOR));
 
-//		system::system.dataPool.ctrlTrqDemB.z = (int32_t) (1024. * sinf(pulse*time));
-//		time += 0.01;
-//		system::system.dataPool.ctrlTrqDemB(
-//				(int32_t) ldexpf(system::system.dataPool.ctrlAttAngErrB.x, 12),
-//				(int32_t) ldexpf(system::system.dataPool.ctrlAttAngErrB.y, 12),
-//				(int32_t) ldexpf(system::system.dataPool.ctrlAttAngErrB.z, 12));
 	}
-
-//	math::Vector3f dynInertia;
-//	system::system.getDynamics().getDiagInertia(dynInertia);
-//	math::Vector3l trqDemGuidB(
-//			((int32_t) ldexpf(((rateDem_B.x-_rateDem_B_prev.x)*FSW_TASK_CTRL_FREQ*dynInertia.x),SCALE_TORSOR)),
-//			((int32_t) ldexpf(((rateDem_B.y-_rateDem_B_prev.y)*FSW_TASK_CTRL_FREQ*dynInertia.y),SCALE_TORSOR)),
-//			((int32_t) ldexpf(((rateDem_B.z-_rateDem_B_prev.z)*FSW_TASK_CTRL_FREQ*dynInertia.z),SCALE_TORSOR)));
-//
-//	system::system.dataPool.ctrlTrqDemB += trqDemGuidB;
 }
 
 void AttitudeController::reset()

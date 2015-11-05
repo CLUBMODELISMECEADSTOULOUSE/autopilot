@@ -10,7 +10,7 @@
 
 #include <math/Quaternion.hpp>
 #include <autom/ctrl/ControllerPid3Axes.hpp>
-#include <autom/filt/DiscreteFilter.hpp>
+#include <autom/filt/SecondOrderFilter.hpp>
 
 namespace attitude {
 
@@ -21,9 +21,9 @@ public:
 		autom::ControllerPid3Axes<float>::Parameter ctrl;
 		float maxCosAngOverTwoErr;
 		float maxSinAngOverTwoErr;
-		autom::DiscreteFilter<float, float, 3, 3>::Parameter filterX;
-		autom::DiscreteFilter<float, float, 3, 3>::Parameter filterY;
-		autom::DiscreteFilter<float, float, 3, 3>::Parameter filterZ;
+		autom::SecondOrderFilter::Parameter filterX;
+		autom::SecondOrderFilter::Parameter filterY;
+		autom::SecondOrderFilter::Parameter filterZ;
 	} Parameter;
 
 public:
@@ -49,13 +49,13 @@ protected:
 	const AttitudeController::Parameter& _param;
 
 	/** @brief Filter for X axis */
-	autom::DiscreteFilter<float, float, 3, 3> _filterX;
+	autom::SecondOrderFilter _filterX;
 
 	/** @brief Filter for Y axis */
-	autom::DiscreteFilter<float, float, 3, 3> _filterY;
+	autom::SecondOrderFilter _filterY;
 
 	/** @brief Filter for Z axis */
-	autom::DiscreteFilter<float, float, 3, 3> _filterZ;
+	autom::SecondOrderFilter _filterZ;
 };
 
 } /* namespace attitude */
