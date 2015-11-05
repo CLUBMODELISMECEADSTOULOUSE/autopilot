@@ -30,10 +30,19 @@ void NavigationController::execute()
 	system::system.dataPool.ctrlNavVelErrI =
 			system::system.dataPool.guidVel_I - system::system.dataPool.estVel_I;
 
+
+	/* Compute error performed on the command realization */
+	math::Vector3f errCmdB(
+			ldexpf((float)(system::system.dataPool.ctrlFrcDemB.x - system::system.dataPool.estForce_B.x), -SCALE_TORSOR),
+			ldexpf((float)(system::system.dataPool.ctrlFrcDemB.y - system::system.dataPool.estForce_B.y), -SCALE_TORSOR),
+			ldexpf((float)(system::system.dataPool.ctrlFrcDemB.z - system::system.dataPool.estForce_B.z), -SCALE_TORSOR));
+	math::Vector3f errCmdI = system::system.dataPool.estAtt_IB.rotateQVQconj(errCmdB);
+
 	/* Compute control force */
 	_ctrl.computeCommand(
 			system::system.dataPool.ctrlNavPosErrI,
 			system::system.dataPool.ctrlNavVelErrI,
+			errCmdI,
 			system::system.dataPool.ctrlFrcDemI);
 
 	/* Add feedforward guidance force to the force */
