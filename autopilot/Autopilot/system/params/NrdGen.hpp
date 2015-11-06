@@ -213,5 +213,9 @@
 #define K_NAVCTRL_MAXI_1 1.000000
 #define K_NAVCTRL_MAXI_2 3.746777
 
+#define K_NAV_DIRTHR_X (     0)
+#define K_NAV_DIRTHR_Y (     0)
+#define K_NAV_DIRTHR_Z (-34443)
+
 
 #endif /* SYSTEM_PARAMS_NRDGEN_HPP_ */
