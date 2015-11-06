@@ -180,7 +180,7 @@ const navigation::NavigationManager::Parameter navMgrParam =
 		/* paramDirectThrust */
 		{
 				/* unitThrust */
-				{0, 0, -31293}
+				{K_NAV_DIRTHR_X, K_NAV_DIRTHR_Y, K_NAV_DIRTHR_Z}
 		},
 } ;
 
@@ -865,11 +865,13 @@ PROGMEM const mavlink::ParameterMgt::ParamInfo info[] = {
 		PARAM(REAL32,"EA_ANG_ACC", (void*)&paramEst.gainAttAngAcco, EST_GAIN_ACCO_ANGLE),
 		PARAM(REAL32,"EA_DRI_ACC", (void*)&paramEst.gainAttDriftAcco, EST_GAIN_ACCO_DRIFT),
 		PARAM(REAL32,"EA_ANG_CMP", (void*)&paramEst.gainAttAngCompass, EST_GAIN_COMPASS_ANGLE),
-		PARAM(REAL32,"EA_DRI_CMP", (void*)&paramEst.gainAttDriftCompass, EST_GAIN_COMPASS_DRIFT)
+		PARAM(REAL32,"EA_DRI_CMP", (void*)&paramEst.gainAttDriftCompass, EST_GAIN_COMPASS_DRIFT),
+		PARAM(INT32,"NAV_DIRTHR_X", (void*)&navMgrParam.paramDirectThrust.unitThrust[0], K_NAV_DIRTHR_X),
+		PARAM(INT32,"NAV_DIRTHR_Y", (void*)&navMgrParam.paramDirectThrust.unitThrust[1], K_NAV_DIRTHR_Y),
+		PARAM(INT32,"NAV_DIRTHR_Z", (void*)&navMgrParam.paramDirectThrust.unitThrust[2], K_NAV_DIRTHR_Z)
 };
 
-uint16_t paramCount = 144;
-
+uint16_t paramCount = 147;
 
 System system = System();
 
