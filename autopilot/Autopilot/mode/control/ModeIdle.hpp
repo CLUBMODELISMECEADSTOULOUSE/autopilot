@@ -8,14 +8,17 @@
 #ifndef MODE_MODEIDLE_HPP_
 #define MODE_MODEIDLE_HPP_
 
-#include <mode/Mode.hpp>
+#include <mode/control/ModeControl.hpp>
 
 namespace system {
 
-class ModeIdle: public Mode {
+class ModeIdle: public ModeControl {
 public:
 	ModeIdle();
 	virtual ~ModeIdle();
+
+	/** Execute current step */
+	virtual void execute(E_STEP step);
 };
 
 } /* namespace system */

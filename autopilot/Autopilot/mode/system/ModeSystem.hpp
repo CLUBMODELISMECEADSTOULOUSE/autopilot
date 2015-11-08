@@ -1,19 +1,21 @@
 /*
- * Mode.hpp
+ * ModeSystem.hpp
  *
- *  Created on: 17 juin 2015
+ *  Created on: 8 nov. 2015
  *      Author: AdministrateurLocal
  */
 
-#ifndef GCS_MODE_MODE_HPP_
-#define GCS_MODE_MODE_HPP_
+#ifndef MODE_SYSTEM_MODESYSTEM_HPP_
+#define MODE_SYSTEM_MODESYSTEM_HPP_
+
+#include <mode/Mode.hpp>
 
 namespace system {
 
-class Mode {
+class ModeSystem : public Mode {
 public:
-	Mode();
-	virtual ~Mode();
+	ModeSystem();
+	virtual ~ModeSystem();
 
 	/** Activated on entering the mode by mode manager */
 	virtual void onEnter() = 0;
@@ -24,4 +26,4 @@ public:
 
 } /* namespace system */
 
-#endif /* GCS_MODE_MODE_HPP_ */
+#endif /* MODE_SYSTEM_MODESYSTEM_HPP_ */

@@ -1,20 +1,20 @@
 /*
- * ModeIdle.cpp
+ * ModeSystem.cpp
  *
- *  Created on: 6 nov. 2015
+ *  Created on: 8 nov. 2015
  *      Author: AdministrateurLocal
  */
 
-#include <mode/ModeIdle.hpp>
+#include <mode/system/ModeSystem.hpp>
 
 namespace system {
 
-ModeIdle::ModeIdle() {
+ModeSystem::ModeSystem() {
 	// TODO Auto-generated constructor stub
 
 }
 
-ModeIdle::~ModeIdle() {
+ModeSystem::~ModeSystem() {
 	// TODO Auto-generated destructor stub
 }
 

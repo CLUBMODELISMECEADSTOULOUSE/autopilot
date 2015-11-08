@@ -1,27 +1,30 @@
 /*
- * Mode.hpp
+ * ModeInit.hpp
  *
- *  Created on: 17 juin 2015
+ *  Created on: 8 nov. 2015
  *      Author: AdministrateurLocal
  */
 
-#ifndef GCS_MODE_MODE_HPP_
-#define GCS_MODE_MODE_HPP_
+#ifndef MODE_SYSTEM_MODEINIT_HPP_
+#define MODE_SYSTEM_MODEINIT_HPP_
+
+#include <mode/system/ModeSystem.hpp>
 
 namespace system {
 
-class Mode {
+class ModeInit {
 public:
-	Mode();
-	virtual ~Mode();
+	ModeInit();
+	virtual ~ModeInit();
 
 	/** Activated on entering the mode by mode manager */
 	virtual void onEnter() = 0;
 
 	/** Activated on leaving the mode by mode manager state */
 	virtual void onLeave() = 0;
+
 };
 
 } /* namespace system */
 
-#endif /* GCS_MODE_MODE_HPP_ */
+#endif /* MODE_SYSTEM_MODEINIT_HPP_ */

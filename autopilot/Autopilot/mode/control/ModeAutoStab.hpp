@@ -8,11 +8,11 @@
 #ifndef MODEAUTOSTAB_HPP_
 #define MODEAUTOSTAB_HPP_
 
-#include "Mode.hpp"
+#include <mode/control/ModeControl.hpp>
 
 namespace system {
 
-class ModeAutoStab {
+class ModeAutoStab : public ModeControl {
 public:
 	ModeAutoStab();
 	virtual ~ModeAutoStab();
