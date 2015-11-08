@@ -12,13 +12,13 @@
 
 namespace system {
 
-class ModeIdle: public ModeControl {
+class ModeIdle : public ModeControl {
 public:
 	ModeIdle();
 	virtual ~ModeIdle();
 
 	/** Execute current step */
-	virtual void execute(E_STEP step);
+	virtual void execute(ModeControl::Step step);
 };
 
 } /* namespace system */

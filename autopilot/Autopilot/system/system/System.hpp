@@ -35,8 +35,8 @@
 #else
 #include <autom/mod/ModulatorLut.hpp>
 #endif
-#include <att/mgt/AttitudeManager.hpp>
-#include <nav/mgt/NavigationManager.hpp>
+
+#include <mode/control/ModeControlManager.hpp>
 
 #include <system/system/DataPool.hpp>
 #include <system/params/Dynamics.hpp>
@@ -176,12 +176,6 @@ protected:
 	/** @brief Process estimation */
 	void processEstimation();
 
-	/** @brief Process attitude */
-	void processAttitude();
-
-	/** @brief Process navigation*/
-	void processNavigation();
-
 	/** @brief Process actuators */
 	void processActuators();
 
@@ -245,11 +239,8 @@ protected:
 	/** @brief Modulator */
 	autom::ModulatorLut _modulator;
 
-	/** @brief Attitude Manager */
-	attitude::AttitudeManager _attMgr;
-
-	/** @brief Navigation Manager */
-	navigation::NavigationManager _navMgr;
+	/** @brief Control mode manager */
+	ModeControlManager _modeControlManager;
 
 	/** @brief arm/disarm timer */
 	uint16_t _timerArmMgt;

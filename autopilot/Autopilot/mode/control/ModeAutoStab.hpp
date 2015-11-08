@@ -16,6 +16,10 @@ class ModeAutoStab : public ModeControl {
 public:
 	ModeAutoStab();
 	virtual ~ModeAutoStab();
+
+	/** Activated on entering the mode by mode manager */
+	virtual void onEnter();
+
 };
 
 } /* namespace system */

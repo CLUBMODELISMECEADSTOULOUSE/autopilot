@@ -9,22 +9,22 @@
 #define MODE_CONTROL_MODECONTROL_HPP_
 
 #include <mode/Mode.hpp>
-#include <system/system/System.hpp>
-#include <att/guid/AttitudeGuidance.hpp>
+#include <autom/mod/ModulatorLut.hpp>
+#include <att/guid/AttitudeGuidanceManager.hpp>
 #include <att/ctrl/AttitudeController.hpp>
-#include <nav/guid/NavigationGuidance.hpp>
+#include <nav/guid/NavigationGuidanceManager.hpp>
 #include <nav/ctrl/NavigationController.hpp>
 
 namespace system {
 
-class ModeControl: public Mode {
+class ModeControl : public Mode {
 public:
 	typedef enum
 	{
 		E_STEP_NONE,
 		E_STEP_ATTITUDE,
 		E_STEP_NAVIGATION,
-	} E_STEP;
+	} Step;
 
 public:
 	ModeControl();
@@ -34,23 +34,26 @@ public:
 	virtual void onEnter();
 
 	/** Execute current step */
-	virtual void execute(E_STEP step);
+	virtual void execute(Step step);
 
 	/** Activated on leaving the mode by mode manager state */
 	virtual void onLeave();
 
 protected:
-	/** @bief Attitude controller: (intended to be) common to all modes */
+	/** @brief Attitude controller: (intended to be) common to all modes */
 	static attitude::AttitudeController _attCtrl;
 
-	/** @bief Attitude guidance state machine: (intended to be) common to all modes */
+	/** @brief Attitude guidance state machine: (intended to be) common to all modes */
 	static attitude::AttitudeGuidanceManager _attGuidStateMachine;
 
-	/** @bief Navigation controller: (intended to be) common to all modes */
+	/** @brief Navigation controller: (intended to be) common to all modes */
 	static navigation::NavigationController _navCtrl;
 
-	/** @bief Navigation guidance state machine: (intended to be) common to all modes */
+	/** @brief Navigation guidance state machine: (intended to be) common to all modes */
 	static navigation::NavigationGuidanceManager _navGuidStateMachine;
+
+	/** @brief Navigation guidance state machine: (intended to be) common to all modes */
+	static autom::ModulatorLut _modulator;
 };
 
 } /* namespace system */

@@ -6,6 +6,7 @@
  */
 
 #include <mode/control/ModeIdle.hpp>
+#include <system/system/System.hpp>
 
 namespace system {
 
@@ -19,7 +20,7 @@ ModeIdle::~ModeIdle()
 }
 
 /** Execute current step */
-void ModeIdle::execute(E_STEP step)
+void ModeIdle::execute(ModeControl::Step step)
 {
 	/* Don't mind, this mode command null torque / force */
 	system::system.dataPool.ctrlFrcDemB(0,0,0);

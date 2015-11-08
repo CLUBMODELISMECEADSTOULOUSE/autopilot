@@ -26,6 +26,9 @@ public:
 	/** @brief Exeute the service */
 	void execute();
 
+	/** @brief Reset controller */
+	void reset();
+
 protected:
 
 	/** @brief Parameter */

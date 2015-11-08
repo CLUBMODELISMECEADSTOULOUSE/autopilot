@@ -12,6 +12,7 @@
 
 #include <infra/rtos/Task.hpp>
 #include <system/params/NrdGen.hpp>
+#include <nav/mgt/NavigationDirectThrust.hpp>
 
 
 #define PARAM(type, name, addr, defVal) { MAV_PARAM_TYPE_##type, name, addr, {type : defVal} }
@@ -48,141 +49,135 @@ const autom::ModulatorLut::Parameter paramMod =
 
 #endif
 
-const attitude::AttitudeManager::Parameter attMgrParam =
+const attitude::AttitudeController::Parameter attCtrlParam =
 {
 		/* ctrl */
 		{
-				/* ctrl */
+				/* axes */
 				{
-						/* axes */
 						{
-								{
-										/* Kp */
-										K_ATTCTRL_KP_0,
-										/* Kd */
-										K_ATTCTRL_KD_0,
-										/* Ki; */
-										K_ATTCTRL_KI_0,
-										/* maxI */
-										K_ATTCTRL_MAXI_0
-								},
-								{
-										/* Kp */
-										K_ATTCTRL_KP_1,
-										/* Kd */
-										K_ATTCTRL_KD_1,
-										/* Ki; */
-										K_ATTCTRL_KI_1,
-										/* maxI */
-										K_ATTCTRL_MAXI_1
-								},
-								{
-										/* Kp */
-										K_ATTCTRL_KP_2,
-										/* Kd */
-										K_ATTCTRL_KD_2,
-										/* Ki; */
-										K_ATTCTRL_KI_2,
-										/* maxI */
-										K_ATTCTRL_MAXI_2
-								}
+								/* Kp */
+								K_ATTCTRL_KP_0,
+								/* Kd */
+								K_ATTCTRL_KD_0,
+								/* Ki; */
+								K_ATTCTRL_KI_0,
+								/* maxI */
+								K_ATTCTRL_MAXI_0
+						},
+						{
+								/* Kp */
+								K_ATTCTRL_KP_1,
+								/* Kd */
+								K_ATTCTRL_KD_1,
+								/* Ki; */
+								K_ATTCTRL_KI_1,
+								/* maxI */
+								K_ATTCTRL_MAXI_1
+						},
+						{
+								/* Kp */
+								K_ATTCTRL_KP_2,
+								/* Kd */
+								K_ATTCTRL_KD_2,
+								/* Ki; */
+								K_ATTCTRL_KI_2,
+								/* maxI */
+								K_ATTCTRL_MAXI_2
 						}
-				},
-				/* maxCosAngOverTwoErr */
-				K_ATTCTRL_MAXERRCOS,
-				/* maxSinAngOverTwoErr */
-				K_ATTCTRL_MAXERRSIN,
-				/* filterX */
-				{
-						/* a0 */
-						K_ATTCTRL_FILT_X_NUM_0,
-						/* a1 */
-						K_ATTCTRL_FILT_X_NUM_1,
-						/* a2 */
-						K_ATTCTRL_FILT_X_NUM_2,
-						/* -b1 */
-						-K_ATTCTRL_FILT_X_DEN_1,
-						/* -b2 */
-						-K_ATTCTRL_FILT_X_DEN_2,
-				},
-				/* filterY */
-				{
-						/* a0 */
-						K_ATTCTRL_FILT_Y_NUM_0,
-						/* a1 */
-						K_ATTCTRL_FILT_Y_NUM_1,
-						/* a2 */
-						K_ATTCTRL_FILT_Y_NUM_2,
-						/* -b1 */
-						-K_ATTCTRL_FILT_Y_DEN_1,
-						/* -b2 */
-						-K_ATTCTRL_FILT_Y_DEN_2,
-				},
-				/* filterZ */
-				{
-						/* a0 */
-						K_ATTCTRL_FILT_Z_NUM_0,
-						/* a1 */
-						K_ATTCTRL_FILT_Z_NUM_1,
-						/* a2 */
-						K_ATTCTRL_FILT_Z_NUM_2,
-						/* -b1 */
-						-K_ATTCTRL_FILT_Z_DEN_1,
-						/* -b2 */
-						-K_ATTCTRL_FILT_Z_DEN_2,
 				}
+		},
+		/* maxCosAngOverTwoErr */
+		K_ATTCTRL_MAXERRCOS,
+		/* maxSinAngOverTwoErr */
+		K_ATTCTRL_MAXERRSIN,
+		/* filterX */
+		{
+				/* a0 */
+				K_ATTCTRL_FILT_X_NUM_0,
+				/* a1 */
+				K_ATTCTRL_FILT_X_NUM_1,
+				/* a2 */
+				K_ATTCTRL_FILT_X_NUM_2,
+				/* -b1 */
+				-K_ATTCTRL_FILT_X_DEN_1,
+				/* -b2 */
+				-K_ATTCTRL_FILT_X_DEN_2,
+		},
+		/* filterY */
+		{
+				/* a0 */
+				K_ATTCTRL_FILT_Y_NUM_0,
+				/* a1 */
+				K_ATTCTRL_FILT_Y_NUM_1,
+				/* a2 */
+				K_ATTCTRL_FILT_Y_NUM_2,
+				/* -b1 */
+				-K_ATTCTRL_FILT_Y_DEN_1,
+				/* -b2 */
+				-K_ATTCTRL_FILT_Y_DEN_2,
+		},
+		/* filterZ */
+		{
+				/* a0 */
+				K_ATTCTRL_FILT_Z_NUM_0,
+				/* a1 */
+				K_ATTCTRL_FILT_Z_NUM_1,
+				/* a2 */
+				K_ATTCTRL_FILT_Z_NUM_2,
+				/* -b1 */
+				-K_ATTCTRL_FILT_Z_DEN_1,
+				/* -b2 */
+				-K_ATTCTRL_FILT_Z_DEN_2,
 		}
 } ;
 
-const navigation::NavigationManager::Parameter navMgrParam =
+const navigation::NavigationController::Parameter navCtrlParam =
 {
 		/* paramCtrl */
 		{
-				/* paramCtrl */
+				/* axes */
 				{
-						/* axes */
 						{
-								{
-										/* Kp */
-										K_NAVCTRL_KP_0,
-										/* Kd */
-										K_NAVCTRL_KD_0,
-										/* Ki; */
-										K_NAVCTRL_KI_0,
-										/* maxI */
-										K_NAVCTRL_MAXI_0
-								},
-								{
-										/* Kp */
-										K_NAVCTRL_KP_1,
-										/* Kd */
-										K_NAVCTRL_KD_1,
-										/* Ki; */
-										K_NAVCTRL_KI_1,
-										/* maxI */
-										K_NAVCTRL_MAXI_1
-								},
-								{
-										/* Kp */
-										K_NAVCTRL_KP_2,
-										/* Kd */
-										K_NAVCTRL_KD_2,
-										/* Ki; */
-										K_NAVCTRL_KI_2,
-										/* maxI */
-										K_NAVCTRL_MAXI_2
-								}
+								/* Kp */
+								K_NAVCTRL_KP_0,
+								/* Kd */
+								K_NAVCTRL_KD_0,
+								/* Ki; */
+								K_NAVCTRL_KI_0,
+								/* maxI */
+								K_NAVCTRL_MAXI_0
+						},
+						{
+								/* Kp */
+								K_NAVCTRL_KP_1,
+								/* Kd */
+								K_NAVCTRL_KD_1,
+								/* Ki; */
+								K_NAVCTRL_KI_1,
+								/* maxI */
+								K_NAVCTRL_MAXI_1
+						},
+						{
+								/* Kp */
+								K_NAVCTRL_KP_2,
+								/* Kd */
+								K_NAVCTRL_KD_2,
+								/* Ki; */
+								K_NAVCTRL_KI_2,
+								/* maxI */
+								K_NAVCTRL_MAXI_2
 						}
-				},
-				/* mass */
-				1.6,
+				}
 		},
-		/* paramDirectThrust */
-		{
-				/* unitThrust */
-				{K_NAV_DIRTHR_X, K_NAV_DIRTHR_Y, K_NAV_DIRTHR_Z}
-		},
+		/* mass */
+		1.6
 } ;
+navigation::NavigationDirectThrust::Parameter paramDirectThrust =
+{
+		/* unitThrust */
+		{K_NAV_DIRTHR_X, K_NAV_DIRTHR_Y, K_NAV_DIRTHR_Z}
+};
 
 const hw::Radio::Parameter paramRadio =
 {
@@ -242,8 +237,7 @@ System::System()
 #else
   _modulator(paramMod),
 #endif
-  _attMgr(attMgrParam),
-  _navMgr(navMgrParam),
+  _modeControlManager(),
   _timerArmMgt(0),
   _dyn(paramDyn)
 {
@@ -446,11 +440,8 @@ void System::executeArmedMode()
 	/* Process estimation */
 	processEstimation();
 
-	/* Process Navigation */
-	processNavigation();
-
-	/* Process Attitude */
-	processAttitude();
+	/* Execute control mode manager */
+	_modeControlManager.execute();
 
 	/* Process actuator */
 	processActuators();
@@ -547,14 +538,11 @@ bool System::switchToReadyMode()
 	/* reset counter */
 	_timerArmMgt = 0;
 
-	/* Set attitude and nav manager to none mode */
-	_attMgr.setMode(attitude::AttitudeManager::E_ATT_MODE_NONE);
-	_navMgr.setMode(navigation::NavigationManager::E_NAV_MODE_NONE);
+	/* Set control mode to idle */
+	_modeControlManager.setMode(ModeControlManager::E_MODE_IDLE);
 
-	/* Arm motors */
+	/* Disarm motors */
 	disarmMotor();
-	dataPool.ctrlTrqDemB(0.,0.,0.);
-	dataPool.ctrlFrcDemB(0.,0.,0.);
 
 	return true;
 }
@@ -565,14 +553,13 @@ bool System::switchToArmedMode()
 	bool result = true;
 
 	/* Switch the attitude and nav to demanded modes */
-	result &= _attMgr.setMode(attitude::AttitudeManager::E_ATT_MODE_STABNOYAW);
-	result &= _navMgr.setMode(navigation::NavigationManager::E_NAV_MODE_DIRECTTHRUST);
+	// TODO: implement selection according to PWM channel / mavlink services
+	_modeControlManager.setMode(ModeControlManager::E_MODE_AUTOSTAB);
 
 	if (result)
 	{
 		/* Arm motors */
 		armMotor();
-
 	}
 	/* reset counter */
 	_timerArmMgt = 0;
@@ -584,9 +571,8 @@ bool System::switchToArmedMode()
 /** @brief Switch to fail safe mode */
 bool System::switchToFailsafeMode()
 {
-	/* Set commanded force and torque to zero */
-	dataPool.ctrlTrqDemB(0,0,0);
-	dataPool.ctrlFrcDemB(0,0,0);
+	/* Set control mode to idle */
+	_modeControlManager.setMode(ModeControlManager::E_MODE_IDLE);
 
 	/* Disarm motors */
 	disarmMotor();
@@ -686,18 +672,6 @@ void System::processActuators()
 			dataPool.estTorque_B);
 }
 
-/** @brief Process attitude controller */
-void System::processAttitude()
-{
-	_attMgr.execute();
-}
-
-/** @brief Process navigation controller */
-void System::processNavigation()
-{
-	_navMgr.execute();
-}
-
 /** @brief Arm motors */
 void System::armMotor()
 {
@@ -747,33 +721,33 @@ PROGMEM const mavlink::ParameterMgt::ParamInfo info[] = {
 		PARAM(UINT16,"RD_ZERO_6", (void*)&paramRadio.pwmZero[6], (MAX_PULSEWIDTH+MIN_PULSEWIDTH)>>1),
 		PARAM(UINT16,"RD_ZERO_7", (void*)&paramRadio.pwmZero[7], (MAX_PULSEWIDTH+MIN_PULSEWIDTH)>>1),
 		PARAM(UINT16,"RD_REVERS", (void*)&paramRadio.reversed, 0),
-		PARAM(REAL32,"ATT_KP_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].Kp, K_ATTCTRL_KP_0),
-		PARAM(REAL32,"ATT_KP_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].Kp, K_ATTCTRL_KP_1),
-		PARAM(REAL32,"ATT_KP_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].Kp, K_ATTCTRL_KP_2),
-		PARAM(REAL32,"ATT_KD_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].Kd, K_ATTCTRL_KD_0),
-		PARAM(REAL32,"ATT_KD_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].Kd, K_ATTCTRL_KD_1),
-		PARAM(REAL32,"ATT_KD_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].Kd, K_ATTCTRL_KD_2),
-		PARAM(REAL32,"ATT_KI_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].Ki, K_ATTCTRL_KI_0),
-		PARAM(REAL32,"ATT_KI_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].Ki, K_ATTCTRL_KI_1),
-		PARAM(REAL32,"ATT_KI_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].Ki, K_ATTCTRL_KI_2),
-		PARAM(REAL32,"ATT_MAXI_X", (void*)&attMgrParam.ctrl.ctrl.axes[0].maxI, K_ATTCTRL_MAXI_0),
-		PARAM(REAL32,"ATT_MAXI_Y", (void*)&attMgrParam.ctrl.ctrl.axes[1].maxI, K_ATTCTRL_MAXI_1),
-		PARAM(REAL32,"ATT_MAXI_Z", (void*)&attMgrParam.ctrl.ctrl.axes[2].maxI, K_ATTCTRL_MAXI_2),
-		PARAM(REAL32,"ATT_FX_N0", (void*)&attMgrParam.ctrl.filterX.a0, K_ATTCTRL_FILT_X_NUM_0),
-		PARAM(REAL32,"ATT_FX_N1", (void*)&attMgrParam.ctrl.filterX.a1, K_ATTCTRL_FILT_X_NUM_1),
-		PARAM(REAL32,"ATT_FX_N2", (void*)&attMgrParam.ctrl.filterX.a2, K_ATTCTRL_FILT_X_NUM_2),
-		PARAM(REAL32,"ATT_FX_D1", (void*)&attMgrParam.ctrl.filterX.b1, -K_ATTCTRL_FILT_X_DEN_1),
-		PARAM(REAL32,"ATT_FX_D2", (void*)&attMgrParam.ctrl.filterX.b2, -K_ATTCTRL_FILT_X_DEN_2),
-		PARAM(REAL32,"ATT_FY_N0", (void*)&attMgrParam.ctrl.filterY.a0, K_ATTCTRL_FILT_Y_NUM_0),
-		PARAM(REAL32,"ATT_FY_N1", (void*)&attMgrParam.ctrl.filterY.a1, K_ATTCTRL_FILT_Y_NUM_1),
-		PARAM(REAL32,"ATT_FY_N2", (void*)&attMgrParam.ctrl.filterY.a2, K_ATTCTRL_FILT_Y_NUM_2),
-		PARAM(REAL32,"ATT_FY_D1", (void*)&attMgrParam.ctrl.filterY.b1, -K_ATTCTRL_FILT_Y_DEN_1),
-		PARAM(REAL32,"ATT_FY_D2", (void*)&attMgrParam.ctrl.filterY.b2, -K_ATTCTRL_FILT_Y_DEN_2),
-		PARAM(REAL32,"ATT_FZ_N0", (void*)&attMgrParam.ctrl.filterZ.a0, K_ATTCTRL_FILT_Z_NUM_0),
-		PARAM(REAL32,"ATT_FZ_N1", (void*)&attMgrParam.ctrl.filterZ.a1, K_ATTCTRL_FILT_Z_NUM_1),
-		PARAM(REAL32,"ATT_FZ_N2", (void*)&attMgrParam.ctrl.filterZ.a2, K_ATTCTRL_FILT_Z_NUM_2),
-		PARAM(REAL32,"ATT_FZ_D1", (void*)&attMgrParam.ctrl.filterZ.b1, -K_ATTCTRL_FILT_Z_DEN_1),
-		PARAM(REAL32,"ATT_FZ_D2", (void*)&attMgrParam.ctrl.filterZ.b2, -K_ATTCTRL_FILT_Z_DEN_2),
+		PARAM(REAL32,"ATT_KP_X", (void*)&attCtrlParam.ctrl.axes[0].Kp, K_ATTCTRL_KP_0),
+		PARAM(REAL32,"ATT_KP_Y", (void*)&attCtrlParam.ctrl.axes[1].Kp, K_ATTCTRL_KP_1),
+		PARAM(REAL32,"ATT_KP_Z", (void*)&attCtrlParam.ctrl.axes[2].Kp, K_ATTCTRL_KP_2),
+		PARAM(REAL32,"ATT_KD_X", (void*)&attCtrlParam.ctrl.axes[0].Kd, K_ATTCTRL_KD_0),
+		PARAM(REAL32,"ATT_KD_Y", (void*)&attCtrlParam.ctrl.axes[1].Kd, K_ATTCTRL_KD_1),
+		PARAM(REAL32,"ATT_KD_Z", (void*)&attCtrlParam.ctrl.axes[2].Kd, K_ATTCTRL_KD_2),
+		PARAM(REAL32,"ATT_KI_X", (void*)&attCtrlParam.ctrl.axes[0].Ki, K_ATTCTRL_KI_0),
+		PARAM(REAL32,"ATT_KI_Y", (void*)&attCtrlParam.ctrl.axes[1].Ki, K_ATTCTRL_KI_1),
+		PARAM(REAL32,"ATT_KI_Z", (void*)&attCtrlParam.ctrl.axes[2].Ki, K_ATTCTRL_KI_2),
+		PARAM(REAL32,"ATT_MAXI_X", (void*)&attCtrlParam.ctrl.axes[0].maxI, K_ATTCTRL_MAXI_0),
+		PARAM(REAL32,"ATT_MAXI_Y", (void*)&attCtrlParam.ctrl.axes[1].maxI, K_ATTCTRL_MAXI_1),
+		PARAM(REAL32,"ATT_MAXI_Z", (void*)&attCtrlParam.ctrl.axes[2].maxI, K_ATTCTRL_MAXI_2),
+		PARAM(REAL32,"ATT_FX_N0", (void*)&attCtrlParam.filterX.a0, K_ATTCTRL_FILT_X_NUM_0),
+		PARAM(REAL32,"ATT_FX_N1", (void*)&attCtrlParam.filterX.a1, K_ATTCTRL_FILT_X_NUM_1),
+		PARAM(REAL32,"ATT_FX_N2", (void*)&attCtrlParam.filterX.a2, K_ATTCTRL_FILT_X_NUM_2),
+		PARAM(REAL32,"ATT_FX_D1", (void*)&attCtrlParam.filterX.b1, -K_ATTCTRL_FILT_X_DEN_1),
+		PARAM(REAL32,"ATT_FX_D2", (void*)&attCtrlParam.filterX.b2, -K_ATTCTRL_FILT_X_DEN_2),
+		PARAM(REAL32,"ATT_FY_N0", (void*)&attCtrlParam.filterY.a0, K_ATTCTRL_FILT_Y_NUM_0),
+		PARAM(REAL32,"ATT_FY_N1", (void*)&attCtrlParam.filterY.a1, K_ATTCTRL_FILT_Y_NUM_1),
+		PARAM(REAL32,"ATT_FY_N2", (void*)&attCtrlParam.filterY.a2, K_ATTCTRL_FILT_Y_NUM_2),
+		PARAM(REAL32,"ATT_FY_D1", (void*)&attCtrlParam.filterY.b1, -K_ATTCTRL_FILT_Y_DEN_1),
+		PARAM(REAL32,"ATT_FY_D2", (void*)&attCtrlParam.filterY.b2, -K_ATTCTRL_FILT_Y_DEN_2),
+		PARAM(REAL32,"ATT_FZ_N0", (void*)&attCtrlParam.filterZ.a0, K_ATTCTRL_FILT_Z_NUM_0),
+		PARAM(REAL32,"ATT_FZ_N1", (void*)&attCtrlParam.filterZ.a1, K_ATTCTRL_FILT_Z_NUM_1),
+		PARAM(REAL32,"ATT_FZ_N2", (void*)&attCtrlParam.filterZ.a2, K_ATTCTRL_FILT_Z_NUM_2),
+		PARAM(REAL32,"ATT_FZ_D1", (void*)&attCtrlParam.filterZ.b1, -K_ATTCTRL_FILT_Z_DEN_1),
+		PARAM(REAL32,"ATT_FZ_D2", (void*)&attCtrlParam.filterZ.b2, -K_ATTCTRL_FILT_Z_DEN_2),
 		PARAM(INT32,"MOD_IM_FX0", (void*)&paramMod.mod.inflMat[0][0], K_MOD_INFLMAT_0_0),
 		PARAM(INT32,"MOD_IM_FY0", (void*)&paramMod.mod.inflMat[0][1], K_MOD_INFLMAT_0_1),
 		PARAM(INT32,"MOD_IM_FZ0", (void*)&paramMod.mod.inflMat[0][2], K_MOD_INFLMAT_0_2),
@@ -866,9 +840,9 @@ PROGMEM const mavlink::ParameterMgt::ParamInfo info[] = {
 		PARAM(REAL32,"EA_DRI_ACC", (void*)&paramEst.gainAttDriftAcco, EST_GAIN_ACCO_DRIFT),
 		PARAM(REAL32,"EA_ANG_CMP", (void*)&paramEst.gainAttAngCompass, EST_GAIN_COMPASS_ANGLE),
 		PARAM(REAL32,"EA_DRI_CMP", (void*)&paramEst.gainAttDriftCompass, EST_GAIN_COMPASS_DRIFT),
-		PARAM(INT32,"NAV_DIRTHR_X", (void*)&navMgrParam.paramDirectThrust.unitThrust[0], K_NAV_DIRTHR_X),
-		PARAM(INT32,"NAV_DIRTHR_Y", (void*)&navMgrParam.paramDirectThrust.unitThrust[1], K_NAV_DIRTHR_Y),
-		PARAM(INT32,"NAV_DIRTHR_Z", (void*)&navMgrParam.paramDirectThrust.unitThrust[2], K_NAV_DIRTHR_Z)
+		PARAM(INT32,"NAV_DIRTHR_X", (void*)&paramDirectThrust.unitThrust[0], K_NAV_DIRTHR_X),
+		PARAM(INT32,"NAV_DIRTHR_Y", (void*)&paramDirectThrust.unitThrust[1], K_NAV_DIRTHR_Y),
+		PARAM(INT32,"NAV_DIRTHR_Z", (void*)&paramDirectThrust.unitThrust[2], K_NAV_DIRTHR_Z)
 };
 
 uint16_t paramCount = 147;
