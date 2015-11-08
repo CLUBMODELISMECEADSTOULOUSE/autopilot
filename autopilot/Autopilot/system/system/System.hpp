@@ -30,16 +30,9 @@
 #include <gcs/param/ParameterMgt.hpp>
 
 #include <autom/est/SimpleAttitudeKalmanFilter.hpp>
-#ifdef MODULATORPINV
-#include <autom/mod/ModulatorPinv.hpp>
-#else
-#include <autom/mod/ModulatorLut.hpp>
-#endif
-
-#include <mode/control/ModeControlManager.hpp>
-
+#include <mode/control/ModeControl.hpp>
 #include <system/system/DataPool.hpp>
-#include <system/params/Dynamics.hpp>
+#include <system/system/Dynamics.hpp>
 
 #include <fdir/mgt/FdirManager.hpp>
 
@@ -139,14 +132,8 @@ public:
 	/** @brief Getter method for Parameter Management Service */
 	inline mavlink::ParameterMgt& getParameterMgt();
 
-	/** @brief Getter method for Modulator Service */
-	inline autom::Modulator& getModulator();
-
 	/** @brief Getter method for radio service */
 	inline hw::Radio& getRadio();
-
-	/** @brief Getter method for dynamics */
-	inline const system::Dynamics& getDynamics() const ;
 
 	/** @brief FDIR manager */
 	fdir::FdirManager& getFdir();
@@ -236,17 +223,8 @@ protected:
 	/** @brief Estimator */
 	autom::SimpleAttitudeKalmanFilter _estimator;
 
-	/** @brief Modulator */
-	autom::ModulatorLut _modulator;
-
-	/** @brief Control mode manager */
-	ModeControlManager _modeControlManager;
-
 	/** @brief arm/disarm timer */
 	uint16_t _timerArmMgt;
-
-	/** @brief Dynamics */
-	Dynamics _dyn;
 
 	/** @brief FDIR manager */
 	fdir::FdirManager _fdir;
@@ -288,12 +266,6 @@ mavlink::ParameterMgt& System::getParameterMgt()
 	return _paramMgt;
 }
 
-/** @brief Getter method for Modulator Service */
-autom::Modulator& System::getModulator()
-{
-	return _modulator;
-}
-
 /** @brief Getter method for radio service */
 hw::Radio& System::getRadio()
 {
@@ -307,20 +279,12 @@ System::Mode System::getMode()
 }
 
 /** @brief Getter method for dynamics */
-inline const system::Dynamics& System::getDynamics() const
-{
-	return _dyn;
-}
-
-/** @brief Getter method for dynamics */
 inline fdir::FdirManager& System::getFdir()
 {
 	return _fdir;
 }
 
 extern System system;
-extern PROGMEM const mavlink::ParameterMgt::ParamInfo info[];
-extern uint16_t paramCount;
 
 
 } /* namespace system */

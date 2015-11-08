@@ -26,6 +26,46 @@ public:
 		E_STEP_NAVIGATION,
 	} Step;
 
+	typedef enum
+	{
+		E_MODE_IDLE,
+		E_MODE_AUTOSTAB
+	} Mode ;
+
+public:
+
+	/** @brief Initialize mode manager */
+	static void initialize();
+
+	/** @brief Set new mode */
+	static void setMode(Mode mode);
+
+	/** @brief Execute current step */
+	static void execute();
+
+protected:
+
+	/** @brief Reset step */
+	static void resetStep();
+
+	/** @brief Get current step */
+	static Step getStep();
+
+	/** @brief Update current step */
+	static void updateStep();
+
+protected:
+
+	/** @brief Current mode identifier */
+	static Mode _currentModeIdentifier;
+
+	/** @brief Current mode */
+	static ModeControl& _currentMode;
+
+	/** @brief Current step */
+	static uint8_t _currentStep;
+
+
 public:
 	ModeControl();
 	virtual ~ModeControl();
@@ -38,6 +78,14 @@ public:
 
 	/** Activated on leaving the mode by mode manager state */
 	virtual void onLeave();
+
+protected:
+
+	/** @brief Execute attitude step */
+	virtual void stepAttitude();
+
+	/** @brief Execute navigation step */
+	virtual void stepNavigation();
 
 protected:
 	/** @brief Attitude controller: (intended to be) common to all modes */

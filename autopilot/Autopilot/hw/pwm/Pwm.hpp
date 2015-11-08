@@ -21,9 +21,6 @@ namespace hw {
 #define CH_10 9
 #define CH_11 10
 
-#define MIN_PULSEWIDTH     900
-#define MAX_PULSEWIDTH    2100
-
 //#define NUM_CHANNELS 8
 #define MIN_CHANNELS 5      // for ppm sum we allow less than 8 channels to make up a valid packet
 

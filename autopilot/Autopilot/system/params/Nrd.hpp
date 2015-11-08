@@ -22,15 +22,24 @@
 
 #define CNF_TIMER_ARM     (300)
 
+#define CNF_CONTROL_MODE_NAV_PERIOD     (5) // number of time steps between processing two navigation steps
+
+
+#define MIN_PULSEWIDTH     900
+#define MAX_PULSEWIDTH    2100
+
 
 /* **************************************************** */
 /* Physics */
 
 #define PHYSICS_GRAVITY 		(9.81) 	/* [m/s^2] gravity acceleration norm */
-#define PHYSICS_MASS 			(1.600) /* [Kg] mass */
-#define PHYSICS_INERTIA_XX 		(0.0229623) /* [Kg.m^2] Diagonal inertia XX */
-#define PHYSICS_INERTIA_YY 		(0.0448513) /* [Kg.m^2] Diagonal inertia YY */
-#define PHYSICS_INERTIA_ZZ 		(0.0617154) /* [Kg.m^2] Diagonal inertia ZZ */
+#define K_DYN_MASS 			(1.600) /* [Kg] mass */
+#define K_DYN_INER_XX 		(0.0229623) /* [Kg.m^2] Diagonal inertia XX */
+#define K_DYN_INER_YY 		(0.0448513) /* [Kg.m^2] Diagonal inertia YY */
+#define K_DYN_INER_ZZ 		(0.0617154) /* [Kg.m^2] Diagonal inertia ZZ */
+#define K_DYN_COM_X 			(0.0000000) /* [m] Center of Mass position (X axis) */
+#define K_DYN_COM_Y 			(0.0000000) /* [m] Center of Mass position (Y axis)*/
+#define K_DYN_COM_Z 			(0.0000000) /* [m] Center of Mass position (Z axis)*/
 
 /* **************************************************** */
 /* Global FSW parameter */

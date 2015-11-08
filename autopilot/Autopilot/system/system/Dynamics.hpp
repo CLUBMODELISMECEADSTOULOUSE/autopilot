@@ -22,22 +22,26 @@ public:
 
 		/** @brief Center of mass position in body frame */
 		float comPositionB[3];
+
+		/** @brief Mass */
+		float mass;
+
 	} Parameter ;
 
 public:
-	Dynamics(const Parameter& param);
+	Dynamics();
 	virtual ~Dynamics();
 
 public:
 	/** @brief Get diagonal inertia */
-	void getDiagInertia(math::Vector3f& inertia) const ;
+	static void getDiagInertia(math::Vector3f& inertia) ;
 
 	/** @brief Get Center of Mass position in body frame */
-	void getCenterOfMass(math::Vector3f& position_B) const;
+	static void getCenterOfMass(math::Vector3f& position_B);
 
-protected:
-	/** @brief Parameters */
-	const Parameter& _param;
+	/** @brief Get mass */
+	static void getMass(float& mass);
+
 };
 
 } /* namespace system */

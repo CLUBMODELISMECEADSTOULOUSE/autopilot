@@ -52,5 +52,13 @@ void NavigationController::execute()
 	system::system.dataPool.ctrlFrcDemI += (math::Vector3f(0.,0.,-PHYSICS_GRAVITY) * _param.mass);
 }
 
+/** @brief Reset controller */
+void NavigationController::reset()
+{
+	/* Reinitialize the controller */
+	_ctrl.initialize();
+}
+
+
 
 } /* namespace navigation */

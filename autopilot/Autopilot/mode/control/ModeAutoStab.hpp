@@ -20,6 +20,11 @@ public:
 	/** Activated on entering the mode by mode manager */
 	virtual void onEnter();
 
+protected:
+
+	/** @brief Execute navigation step */
+	virtual void stepNavigation();
+
 };
 
 } /* namespace system */

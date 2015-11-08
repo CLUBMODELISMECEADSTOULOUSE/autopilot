@@ -24,6 +24,8 @@
 #include <avr/interrupt.h>
 #include "Arduino.h"
 
+#include <system/params/Nrd.hpp>
+
 namespace hw {
 
 
