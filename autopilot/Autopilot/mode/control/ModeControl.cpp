@@ -37,7 +37,7 @@ static ModeIdle _modeIdle;
 static ModeAutoStab _modeAutoStab;
 
 /* Initialize current mode variable */
-ModeControl& ModeControl::_currentMode = _modeIdle;
+ModeControl* ModeControl::_currentMode = &_modeIdle;
 
 /* Set current identifier as E_MODE_IDLE */
 ModeControl::Mode ModeControl::_currentModeIdentifier = E_MODE_IDLE;
@@ -52,7 +52,7 @@ void ModeControl::initialize()
 	_modulator.initialize();
 
 	/* Enter modeIdle */
-	_currentMode.onEnter();
+	_currentMode->onEnter();
 
 	/* Reset step */
 	resetStep();
@@ -64,15 +64,15 @@ void ModeControl::setMode(Mode mode)
 	if (mode != _currentModeIdentifier)
 	{
 		/* Next mode */
-		ModeControl& next = _currentMode;
+		ModeControl* next = _currentMode;
 
 		switch (mode)
 		{
 		case E_MODE_AUTOSTAB:
-			next = _modeAutoStab;
+			next = &_modeAutoStab;
 			break;
 		case E_MODE_IDLE:
-			next = _modeIdle;
+			next = &_modeIdle;
 			break;
 		default:
 			/* Invalid control mode */
@@ -84,14 +84,14 @@ void ModeControl::setMode(Mode mode)
 			break;
 		}
 		/* Leave current mode */
-		_currentMode.onLeave();
+		_currentMode->onLeave();
 
 		/* Set new mode */
 		_currentMode = next;
 		_currentModeIdentifier = mode;
 
 		/* Enter new mode */
-		_currentMode.onEnter();
+		_currentMode->onEnter();
 
 		/* Reset step to ensure that next time
 		 * navigation will be computed */
@@ -103,7 +103,7 @@ void ModeControl::setMode(Mode mode)
 void ModeControl::execute()
 {
 	/* Execute current mode step */
-	_currentMode.execute(getStep());
+	_currentMode->execute(getStep());
 
 	/* Update step */
 	updateStep();

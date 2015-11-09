@@ -60,7 +60,7 @@ protected:
 	static Mode _currentModeIdentifier;
 
 	/** @brief Current mode */
-	static ModeControl& _currentMode;
+	static ModeControl* _currentMode;
 
 	/** @brief Current step */
 	static uint8_t _currentStep;
