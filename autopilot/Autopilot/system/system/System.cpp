@@ -121,6 +121,8 @@ void System::initialize()
 	/* GCS */
 	_gcs.initialize();
 
+	/* Initialize control mode */
+	ModeControl::initialize();
 }
 
 void System::execute()
