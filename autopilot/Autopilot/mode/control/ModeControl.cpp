@@ -88,6 +88,7 @@ void ModeControl::setMode(Mode mode)
 
 		/* Set new mode */
 		_currentMode = next;
+		_currentModeIdentifier = mode;
 
 		/* Enter new mode */
 		_currentMode.onEnter();
