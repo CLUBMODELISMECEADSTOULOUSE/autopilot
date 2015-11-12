@@ -103,6 +103,26 @@ void SpiBus::read(uint8_t id, uint8_t addr, uint8_t cnt, uint8_t* dataOut)
 }
 
 /** @brief Write / transfer any size. */
+void SpiBus::readn(uint8_t id, uint8_t addr, uint8_t cnt, uint8_t* dataOut)
+{
+	uint8_t idx;
+	/* Check if current slave is selected */
+	/* Set SS to deselect the slave */
+	digitalWrite(id, LOW);
+
+	/* Discard */
+	transfer(addr);
+	for (idx=cnt-1 ; idx!=0 ; idx--)
+	{
+		/* copy */
+		dataOut[idx] = transfer(addr);
+	}
+	dataOut[idx] = transfer(0);
+	/* Set SS to deselect the slave */
+	digitalWrite(id, HIGH);
+}
+
+/** @brief Write / transfer any size. */
 void SpiBus::read(uint8_t id, uint8_t addr, uint8_t cnt, uint16_t* dataOut)
 {
 	uint8_t idx;
@@ -129,7 +149,7 @@ void SpiBus::transfer(uint8_t id, uint8_t* dataIn, uint8_t cnt, uint8_t* dataOut
 {
 	uint8_t idx;
 
-	/* Set SS to deselect the slave */
+	/* Set SS to select the slave */
 	digitalWrite(id, LOW);
 
 	if (dataOut == NULL)
@@ -151,7 +171,7 @@ void SpiBus::transfer(uint8_t id, uint8_t* dataIn, uint8_t cnt, uint8_t* dataOut
 /** @brief Read 8bits. */
 void SpiBus::transfer0(uint8_t id, uint8_t cmd) {
 
-	/* Set SS to deselect the slave */
+	/* Set SS to select the slave */
 	digitalWrite(id, LOW);
 	/* Discard */
 	transfer(cmd);
@@ -161,7 +181,7 @@ void SpiBus::transfer0(uint8_t id, uint8_t cmd) {
 
 /** @brief Read 8bits. */
 void SpiBus::transfer8(uint8_t id, uint8_t cmd, uint8_t& dataOut, bool discardFirst) {
-	/* Set SS to deselect the slave */
+	/* Set SS to select the slave */
 	digitalWrite(id, LOW);
 	dataOut = transfer(cmd); /* Discard */
 	if (discardFirst)
@@ -174,7 +194,7 @@ void SpiBus::transfer8(uint8_t id, uint8_t cmd, uint8_t& dataOut, bool discardFi
 void SpiBus::transfer16(uint8_t id, uint8_t cmd, uint16_t& dataOut, bool discardFirst) {
 	uint16_t dataL, dataH;
 
-	/* Set SS to deselect the slave */
+	/* Set SS to select the slave */
 	digitalWrite(id, LOW);
 	dataH = transfer(cmd);
 	if (discardFirst)
@@ -189,7 +209,7 @@ void SpiBus::transfer16(uint8_t id, uint8_t cmd, uint16_t& dataOut, bool discard
 void SpiBus::transfer24(uint8_t id, uint8_t cmd, uint32_t& dataOut, bool discardFirst) {
 	uint32_t dataL, dataM, dataH;
 
-	/* Set SS to deselect the slave */
+	/* Set SS to select the slave */
 	digitalWrite(id, LOW);
 	dataH = transfer(cmd);
 	if (discardFirst)
@@ -207,7 +227,7 @@ void SpiBus::transfer32(uint8_t id, uint8_t cmd, uint32_t& dataOut, bool discard
 	uint16_t dataML;
 	uint32_t dataMH, dataH;
 
-	/* Set SS to deselect the slave */
+	/* Set SS to select the slave */
 	digitalWrite(id, LOW);
 	dataH = transfer(cmd);
 	if (discardFirst)

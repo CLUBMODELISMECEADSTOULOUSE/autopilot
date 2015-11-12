@@ -9,8 +9,13 @@
 #include "HalImuMpu6000.hpp"
 #include <system/params/Nrd.hpp>
 #include <hw/spi/SpiBus.hpp>
-
 #include <Arduino.h>
+#include <system/system/System.hpp>
+
+#include <string.h>
+
+#define BITS_EXTRACT(regval, mask, offset) \
+	((regval & mask) >> offset)
 
 #define MPU6000_CS_PIN       53        // APM pin connected to mpu6000's chip select pin
 #define DMP_FIFO_BUFFER_SIZE 72        // DMP FIFO buffer size
@@ -59,6 +64,15 @@
 #define MPUREG_ZRMOT_THR                                0x21    // detection threshold for Zero Motion interrupt generation.
 #define MPUREG_ZRMOT_DUR                                0x22    // duration counter threshold for Zero Motion interrupt generation. The duration counter ticks at 16 Hz, therefore ZRMOT_DUR has a unit of 1 LSB = 64 ms.
 #define MPUREG_FIFO_EN                                  0x23
+#       define BIT_SLV0_FIFO_EN							0x01
+#       define BIT_SLV1_FIFO_EN							0x02
+#       define BIT_SLV2_FIFO_EN							0x04
+#       define BIT_ACCEL_FIFO_EN						0x08
+#       define BIT_ZG_FIFO_EN							0x10
+#       define BIT_YG_FIFO_EN							0x20
+#       define BIT_XG_FIFO_EN							0x40
+#       define BIT_TEMP_FIFO_EN							0x80
+
 #define MPUREG_INT_PIN_CFG                              0x37
 #       define BIT_INT_RD_CLEAR                                 0x10    // clear the interrupt when any read occurs
 #define MPUREG_INT_ENABLE                               0x38
@@ -104,7 +118,7 @@
 #       define BIT_USER_CTRL_I2C_IF_DIS                 0x10            // Disable primary I2C interface and enable SPI interface
 #       define BIT_USER_CTRL_I2C_MST_EN                 0x20            // Enable MPU to act as the I2C Master to external slave sensors
 #       define BIT_USER_CTRL_FIFO_EN                    0x40            // Enable FIFO operations
-#       define BIT_USER_CTRL_DMP_EN                             0x80            // Enable DMP operations
+#       define BIT_USER_CTRL_DMP_EN                     0x80            // Enable DMP operations
 #define MPUREG_PWR_MGMT_1                               0x6B
 #       define BIT_PWR_MGMT_1_CLK_INTERNAL              0x00            // clock set to internal 8Mhz oscillator
 #       define BIT_PWR_MGMT_1_CLK_XGYRO                 0x01            // PLL with X axis gyroscope reference
@@ -128,6 +142,8 @@
 #define MPUREG_FIFO_R_W                                 0x74
 #define MPUREG_WHOAMI                                   0x75
 
+#define BITS_WHOAMI_MASK                                0x7E
+#define BITS_WHOAMI_OFFSET                              1
 
 // Configuration bits MPU 3000 and MPU 6000 (not revised)?
 #define BITS_DLPF_CFG_256HZ_NOLPF2              0x00
@@ -236,21 +252,18 @@ bool HalImuMpu6000::initialize()
     // only used for wake-up in accelerometer only low power mode
     register_write(MPUREG_PWR_MGMT_2, 0x00);
 
-    // Disable I2C bus (recommended on datasheet)
-    register_write(MPUREG_USER_CTRL, BIT_USER_CTRL_I2C_IF_DIS);
-
-//    // FS & DLPF   de-activate the filtering
-//    register_write(MPUREG_CONFIG, BITS_DLPF_CFG_256HZ_NOLPF2);
-
-	// FS & DLPF activate filtering at 98HZ
-	register_write(MPUREG_CONFIG, BITS_DLPF_CFG_98HZ);
+    // FS & DLPF   de-activate the filtering
+    register_write(MPUREG_CONFIG, BITS_DLPF_CFG_256HZ_NOLPF2);
 
     // Sample rate (since no filter activated, the sampling rate is
     // 8kHz instead of 1kHz)
     //register_write(MPUREG_SMPLRT_DIV, (_freq+1)*8-1);
 //    register_write(MPUREG_SMPLRT_DIV, _freq);
 //    register_write(MPUREG_SMPLRT_DIV, 0x4F);
-    register_write(MPUREG_SMPLRT_DIV, _frequence);
+    // 1KHz = 8KHz / (1+SMPLRT_DIV)
+    // 1KHz * (1+SMPLRT_DIV) = 8KHz
+    //  SMPLRT_DIV = (8KHz - 1KHz) / 1KHz = 7
+    register_write(MPUREG_SMPLRT_DIV, 7);
 
     // Gyro scale
     register_write(MPUREG_GYRO_CONFIG, _gyrCnf);
@@ -267,18 +280,31 @@ bool HalImuMpu6000::initialize()
         register_write(MPUREG_ACCEL_CONFIG,_accCnf<<3);
     }
 
+    // Configure FIFO buffer
+    register_write(MPUREG_FIFO_EN, BIT_ACCEL_FIFO_EN | BIT_ZG_FIFO_EN | BIT_YG_FIFO_EN | BIT_XG_FIFO_EN);
+
+    // Disable I2C bus (recommended on datasheet)
+    // and enable FIFO
+    register_write(MPUREG_USER_CTRL, BIT_USER_CTRL_I2C_IF_DIS | BIT_USER_CTRL_FIFO_EN);
+
     // Disable all interrupt
     register_write(MPUREG_INT_ENABLE, 0);
+
     // Clear count
     _intRdyCnt = 0;
+
     // Attach interrupt
     HalImuMpu6000::_imu = this;
     attachInterrupt(6,handleReadyInterrupt,RISING);
-    // clear interrupt on any read
+
+    // clear interrupt on any status read
     register_write(MPUREG_INT_PIN_CFG, BIT_INT_RD_CLEAR);
 
-    // configure interrupt to fire when new data arrives
-    register_write(MPUREG_INT_ENABLE, BIT_RAW_RDY_EN);
+//    // configure interrupt to fire when new data arrives
+//    register_write(MPUREG_INT_ENABLE, BIT_RAW_RDY_EN);
+
+    // configure interrupt to fire on FIFP overflow
+    register_write(MPUREG_INT_ENABLE, BIT_FIFO_OFLOW_EN);
 
     return HalImu::initialize();
 }
@@ -299,59 +325,119 @@ bool HalImuMpu6000::sample (
 		math::Vector3i& acc_U,
 		int16_t& temp)
 {
-	bool isAvailable;
-	int16_t data[7];
+//	char message[100];
+//	hw::Serial& com = system::system.getCom0();
 
-	infra::Task::disableInterrupt();
-	isAvailable = (_intRdyCnt != 0);
-	_intRdyCnt = 0;
-	infra::Task::enableInterrupt();
+	int16_t data[6];
+	int32_t dataLong[6];
+	uint16_t fifoCount = 0;
+//	uint16_t fifoCountEnd = 0;
+	int32_t read = 0;
 
-	if (isAvailable)
+//	sprintf(message, "fifoCount=%d\n", fifoCount);
+//	com.write((uint8_t*) &message[0], strlen(message));
+	if(_intRdyCnt!=0)
 	{
-		_spiBus.select(IMU_MPU6000_SPI_CS_PIN);
+		uint8_t status = register_read(MPUREG_INT_STATUS);
+		if (status & BIT_FIFO_OFLOW_INT)
+		{
+			register_write(MPUREG_USER_CTRL, BIT_USER_CTRL_FIFO_RESET);
+			register_write(MPUREG_USER_CTRL, BIT_USER_CTRL_FIFO_EN);
+//			sprintf(&message[0], "intRdyCnt=%d\n", _intRdyCnt);
+//			com.write((uint8_t*) &message[0], strlen(&message[0]));
+			_intRdyCnt = 0;
+			return false;
+		}
+	}
 
+	memset(dataLong, 0, sizeof(int32_t[6]));
+
+	_spiBus.read(IMU_MPU6000_SPI_CS_PIN, MPUREG_FIFO_COUNTH | 0x80, 1, &fifoCount);
+	uint8_t addr = (MPUREG_FIFO_R_W | 0x80) ;
+	while (fifoCount >= 12)
+	{
+		read++;
+		fifoCount -= 12;
+		uint32_t value;
 		/* Read data */
-		_spiBus.read(IMU_MPU6000_SPI_CS_PIN, (uint8_t) (MPUREG_ACCEL_XOUT_H | 0x80),7,(uint16_t*)&data[0]);
+		_spiBus.readn(IMU_MPU6000_SPI_CS_PIN,addr,12,(uint8_t*)&data[0]);
 
-		_spiBus.release(IMU_MPU6000_SPI_CS_PIN);
+		dataLong[0] += (int32_t) data[0];
+		dataLong[1] += (int32_t) data[1];
+		dataLong[2] += (int32_t) data[2];
+		dataLong[3] += (int32_t) data[3];
+		dataLong[4] += (int32_t) data[4];
+		dataLong[5] += (int32_t) data[5];
+
+//		if (read==1)
+//		{
+////			_spiBus.read(IMU_MPU6000_SPI_CS_PIN, MPUREG_FIFO_COUNTH | 0x80, 1, &fifoCountEnd);
+//			sprintf(&message[0], "%d/%d ", data[0], dataLong[0]);
+//			com.write((uint8_t*) &message[0], strlen(&message[0]));
+//			sprintf(&message[0], "%d/%d ", data[1], dataLong[1]);
+//			com.write((uint8_t*) &message[0], strlen(&message[0]));
+//			sprintf(&message[0], "%d/%d ", data[2], dataLong[2]);
+//			com.write((uint8_t*) &message[0], strlen(&message[0]));
+//			sprintf(&message[0], "%d/%d ", data[3], dataLong[3]);
+//			com.write((uint8_t*) &message[0], strlen(&message[0]));
+//			sprintf(&message[0], "%d/%d ", data[4], dataLong[4]);
+//			com.write((uint8_t*) &message[0], strlen(&message[0]));
+//			sprintf(&message[0], "%d/%d\n", data[5], dataLong[5]);
+//			com.write((uint8_t*) &message[0], strlen(&message[0]));
+//		}
+
+	}
+
+//	_spiBus.read(IMU_MPU6000_SPI_CS_PIN, MPUREG_FIFO_COUNTH | 0x80, 1, &fifoCountEnd);
+//	sprintf(&message[0], "s/e/r=%d/%d/%d\n", (int)fifoCount, (int)fifoCountEnd, (int)read);
+//	com.write((uint8_t*) &message[0], strlen(&message[0]));
+//	sprintf(message, "read=%d\n", read);
+//	com.write((uint8_t*) &message[0], strlen(message));
+
+	if (read != 0)
+	{
 
 		/* Store raw linear acceleration */
 		acc_U(
-				data[1], // Y
-				data[0], // X
-				-data[2]); // -Z
+				 (int16_t) (dataLong[4] / read),  //  Y
+				 (int16_t) (dataLong[5] / read),  //  X
+				-(int16_t) (dataLong[3] / read)); // -Z
+//		sprintf(message, "acc={%d,%d,%d}\n",
+//				acc_U.x,
+//				acc_U.y,
+//				acc_U.z);
+//		com.write((uint8_t*) &message[0], strlen(message));
 
 		/* Store angular rate */
 		rate_U(
-				data[5], // Y
-				data[4], // X
-				-data[6]); // -Z
-
-		/* Convert temperature (does not depend of config) */
-		temp = (data[3] * TEMP_SCALE + TEMP_OFFSET)/100.;
-
-		// super
+				 (int16_t) (dataLong[1] / read),  //  Y
+				 (int16_t) (dataLong[2] / read),  //  X
+				-(int16_t) (dataLong[0] / read)); // -Z
+//		sprintf(message, "rat={%d,%d,%d}\n",
+//				rate_U.x,
+//				rate_U.y,
+//				rate_U.z);
+//		com.write((uint8_t*) &message[0], strlen(message));
 	}
-	return isAvailable;
+
+	/* temperature not used */
+	temp = 0;
+
+	return (read != 0);
 }
 
 
 void HalImuMpu6000::register_write(uint8_t reg, uint8_t val) const
 {
     uint8_t dataIn[2] = {reg, val};
-    _spiBus.select(IMU_MPU6000_SPI_CS_PIN);
     _spiBus.transfer(IMU_MPU6000_SPI_CS_PIN, dataIn, 2, NULL);
-    _spiBus.release(IMU_MPU6000_SPI_CS_PIN);
 }
 
 uint8_t HalImuMpu6000::register_read( uint8_t reg ) const
 {
     uint8_t return_value;
 
-    _spiBus.select(IMU_MPU6000_SPI_CS_PIN);
     _spiBus.transfer8(IMU_MPU6000_SPI_CS_PIN, reg | 0x80, return_value, true);
-    _spiBus.release(IMU_MPU6000_SPI_CS_PIN);
 
     return return_value;
 }
@@ -368,52 +454,52 @@ void HalImuMpu6000::handleReadyInterrupt(void)
 void HalImuMpu6000::getGyrOffsets(math::Vector3i& gyrOffsets_U) const
 {
 	gyrOffsets_U(
-			// X
-			(int16_t) (register_read(MPUREG_XG_OFFS_USRH)<<8 | register_read(MPUREG_XG_OFFS_USRL)),
 			// Y
 			(int16_t) (register_read(MPUREG_YG_OFFS_USRH)<<8 | register_read(MPUREG_YG_OFFS_USRL)),
+			// X
+			(int16_t) (register_read(MPUREG_XG_OFFS_USRH)<<8 | register_read(MPUREG_XG_OFFS_USRL)),
 			// Z
-			(int16_t) (register_read(MPUREG_ZG_OFFS_USRH)<<8 | register_read(MPUREG_ZG_OFFS_USRL)));
+			-(int16_t) (register_read(MPUREG_ZG_OFFS_USRH)<<8 | register_read(MPUREG_ZG_OFFS_USRL)));
 }
 void HalImuMpu6000::setGyrOffsets(const math::Vector3i& gyrOffsets_U)
 {
-    // X
-    register_write(MPUREG_XG_OFFS_USRH, (gyrOffsets_U.x >> 8) & 0xFF);
-    register_write(MPUREG_XG_OFFS_USRL, (gyrOffsets_U.x >> 0) & 0xFF);
-
     // Y
-    register_write(MPUREG_YG_OFFS_USRH, (gyrOffsets_U.y >> 8) & 0xFF);
-    register_write(MPUREG_YG_OFFS_USRL, (gyrOffsets_U.y >> 0) & 0xFF);
+    register_write(MPUREG_YG_OFFS_USRH, (gyrOffsets_U.x >> 8) & 0xFF);
+    register_write(MPUREG_YG_OFFS_USRL, (gyrOffsets_U.x >> 0) & 0xFF);
 
-    // Z
-    register_write(MPUREG_ZG_OFFS_USRH, (gyrOffsets_U.z >> 8) & 0xFF);
-    register_write(MPUREG_ZG_OFFS_USRL, (gyrOffsets_U.z >> 0) & 0xFF);
+    // X
+    register_write(MPUREG_XG_OFFS_USRH, (gyrOffsets_U.y >> 8) & 0xFF);
+    register_write(MPUREG_XG_OFFS_USRL, (gyrOffsets_U.y >> 0) & 0xFF);
+
+    // -Z
+    register_write(MPUREG_ZG_OFFS_USRH, ((-gyrOffsets_U.z) >> 8) & 0xFF);
+    register_write(MPUREG_ZG_OFFS_USRL, ((-gyrOffsets_U.z) >> 0) & 0xFF);
 }
 
 void HalImuMpu6000::getAccOffsets(math::Vector3i& accOffsets_U) const
 {
 	accOffsets_U(
-			// X
-			(int16_t) (register_read(MPUREG_XA_OFFS_H)<<8 | register_read(MPUREG_XA_OFFS_L)),
 			// Y
 			(int16_t) (register_read(MPUREG_YA_OFFS_H)<<8 | register_read(MPUREG_YA_OFFS_L)),
-			// Z
-			(int16_t) (register_read(MPUREG_ZA_OFFS_H)<<8 | register_read(MPUREG_ZA_OFFS_L)));
+			// X
+			(int16_t) (register_read(MPUREG_XA_OFFS_H)<<8 | register_read(MPUREG_XA_OFFS_L)),
+			// -Z
+			- (int16_t) (register_read(MPUREG_ZA_OFFS_H)<<8 | register_read(MPUREG_ZA_OFFS_L)));
 }
 
 void HalImuMpu6000::setAccOffsets(const math::Vector3i& accOffsets_U)
 {
-    // X
-    register_write(MPUREG_XA_OFFS_H, (accOffsets_U.x >> 8) & 0xFF);
-    register_write(MPUREG_XA_OFFS_L, (accOffsets_U.x >> 0) & 0xFF);
-
     // Y
-    register_write(MPUREG_YA_OFFS_H, (accOffsets_U.y >> 8) & 0xFF);
-    register_write(MPUREG_YA_OFFS_L, (accOffsets_U.y >> 0) & 0xFF);
+    register_write(MPUREG_YA_OFFS_H, (accOffsets_U.x >> 8) & 0xFF);
+    register_write(MPUREG_YA_OFFS_L, (accOffsets_U.x >> 0) & 0xFF);
 
-    // Z
-    register_write(MPUREG_ZA_OFFS_H, (accOffsets_U.z >> 8) & 0xFF);
-    register_write(MPUREG_ZA_OFFS_L, (accOffsets_U.z >> 0) & 0xFF);
+    // X
+    register_write(MPUREG_XA_OFFS_H, (accOffsets_U.y >> 8) & 0xFF);
+    register_write(MPUREG_XA_OFFS_L, (accOffsets_U.y >> 0) & 0xFF);
+
+    // -Z
+    register_write(MPUREG_ZA_OFFS_H, ((-accOffsets_U.z) >> 8) & 0xFF);
+    register_write(MPUREG_ZA_OFFS_L, ((-accOffsets_U.z) >> 0) & 0xFF);
 }
 
 

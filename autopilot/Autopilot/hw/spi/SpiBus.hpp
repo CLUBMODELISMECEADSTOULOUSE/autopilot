@@ -73,10 +73,13 @@ public:
 	/** @brief Release the bus. */
 	virtual inline void release(uint8_t id);
 
-	/** @brief Write / transfer any size. */
+	/** @brief Read any size. */
 	void read(uint8_t id, uint8_t addr, uint8_t cnt, uint8_t* dataOut);
 
-	/** @brief Write / transfer any size. */
+	/** @brief Read n times the same address. */
+	void readn(uint8_t id, uint8_t addr, uint8_t cnt, uint8_t* dataOut);
+
+	/** @brief read any size. */
 	void read(uint8_t id, uint8_t addr, uint8_t cnt, uint16_t* dataOut);
 
 	/** @brief Write / transfer any size. */

@@ -37,14 +37,15 @@ void ControlCyclicTask::init(void)
 void ControlCyclicTask::runCycle(void)
 {
 	/* Handle missing cycles */
-	if (_missed != 0)
-	{
-		fdir::FdirManager& fdir = system.getFdir();
-		fdir.signalMissingCycles(_missed);
-		_missed = 0;
-	}
+//	if (_missed != 0)
+//	{
+//		fdir::FdirManager& fdir = system.getFdir();
+//		fdir.signalMissingCycles(_missed);
+//		_missed = 0;
+//	}
 
 	system.execute();
+
 
 }
 
