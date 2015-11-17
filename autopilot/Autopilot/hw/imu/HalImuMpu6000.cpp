@@ -10,7 +10,6 @@
 #include <system/params/Nrd.hpp>
 #include <hw/spi/SpiBus.hpp>
 #include <Arduino.h>
-#include <system/system/System.hpp>
 
 #include <string.h>
 
@@ -325,17 +324,11 @@ bool HalImuMpu6000::sample (
 		math::Vector3i& acc_U,
 		int16_t& temp)
 {
-//	char message[100];
-//	hw::Serial& com = system::system.getCom0();
-
 	int16_t data[6];
 	int32_t dataLong[6];
 	uint16_t fifoCount = 0;
-//	uint16_t fifoCountEnd = 0;
 	int32_t read = 0;
 
-//	sprintf(message, "fifoCount=%d\n", fifoCount);
-//	com.write((uint8_t*) &message[0], strlen(message));
 	if(_intRdyCnt!=0)
 	{
 		uint8_t status = register_read(MPUREG_INT_STATUS);
@@ -343,8 +336,6 @@ bool HalImuMpu6000::sample (
 		{
 			register_write(MPUREG_USER_CTRL, BIT_USER_CTRL_FIFO_RESET);
 			register_write(MPUREG_USER_CTRL, BIT_USER_CTRL_FIFO_EN);
-//			sprintf(&message[0], "intRdyCnt=%d\n", _intRdyCnt);
-//			com.write((uint8_t*) &message[0], strlen(&message[0]));
 			_intRdyCnt = 0;
 			return false;
 		}
@@ -369,30 +360,7 @@ bool HalImuMpu6000::sample (
 		dataLong[4] += (int32_t) data[4];
 		dataLong[5] += (int32_t) data[5];
 
-//		if (read==1)
-//		{
-////			_spiBus.read(IMU_MPU6000_SPI_CS_PIN, MPUREG_FIFO_COUNTH | 0x80, 1, &fifoCountEnd);
-//			sprintf(&message[0], "%d/%d ", data[0], dataLong[0]);
-//			com.write((uint8_t*) &message[0], strlen(&message[0]));
-//			sprintf(&message[0], "%d/%d ", data[1], dataLong[1]);
-//			com.write((uint8_t*) &message[0], strlen(&message[0]));
-//			sprintf(&message[0], "%d/%d ", data[2], dataLong[2]);
-//			com.write((uint8_t*) &message[0], strlen(&message[0]));
-//			sprintf(&message[0], "%d/%d ", data[3], dataLong[3]);
-//			com.write((uint8_t*) &message[0], strlen(&message[0]));
-//			sprintf(&message[0], "%d/%d ", data[4], dataLong[4]);
-//			com.write((uint8_t*) &message[0], strlen(&message[0]));
-//			sprintf(&message[0], "%d/%d\n", data[5], dataLong[5]);
-//			com.write((uint8_t*) &message[0], strlen(&message[0]));
-//		}
-
 	}
-
-//	_spiBus.read(IMU_MPU6000_SPI_CS_PIN, MPUREG_FIFO_COUNTH | 0x80, 1, &fifoCountEnd);
-//	sprintf(&message[0], "s/e/r=%d/%d/%d\n", (int)fifoCount, (int)fifoCountEnd, (int)read);
-//	com.write((uint8_t*) &message[0], strlen(&message[0]));
-//	sprintf(message, "read=%d\n", read);
-//	com.write((uint8_t*) &message[0], strlen(message));
 
 	if (read != 0)
 	{
@@ -402,22 +370,12 @@ bool HalImuMpu6000::sample (
 				 (int16_t) (dataLong[4] / read),  //  Y
 				 (int16_t) (dataLong[5] / read),  //  X
 				-(int16_t) (dataLong[3] / read)); // -Z
-//		sprintf(message, "acc={%d,%d,%d}\n",
-//				acc_U.x,
-//				acc_U.y,
-//				acc_U.z);
-//		com.write((uint8_t*) &message[0], strlen(message));
 
 		/* Store angular rate */
 		rate_U(
 				 (int16_t) (dataLong[1] / read),  //  Y
 				 (int16_t) (dataLong[2] / read),  //  X
 				-(int16_t) (dataLong[0] / read)); // -Z
-//		sprintf(message, "rat={%d,%d,%d}\n",
-//				rate_U.x,
-//				rate_U.y,
-//				rate_U.z);
-//		com.write((uint8_t*) &message[0], strlen(message));
 	}
 
 	/* temperature not used */
