@@ -7,7 +7,7 @@
 
 #include "Mode.hpp"
 
-namespace system
+namespace infra
 {
 
 Mode::Mode()
@@ -18,4 +18,4 @@ Mode::~Mode()
 {
 }
 
-} /* namespace system */
+} /* namespace infra */

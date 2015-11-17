@@ -8,7 +8,7 @@
 #ifndef MODE_CONTROL_MODECONTROL_HPP_
 #define MODE_CONTROL_MODECONTROL_HPP_
 
-#include <mode/Mode.hpp>
+#include <infra/mode/Mode.hpp>
 #include <autom/mod/ModulatorLut.hpp>
 #include <att/guid/AttitudeGuidanceManager.hpp>
 #include <att/ctrl/AttitudeController.hpp>
@@ -17,7 +17,7 @@
 
 namespace system {
 
-class ModeControl : public Mode {
+class ModeControl : public infra::Mode {
 public:
 	typedef enum
 	{
@@ -75,6 +75,9 @@ public:
 
 	/** Execute current step */
 	virtual void execute(Step step);
+
+	/** @brief Verify if transition to this mode is possible */
+	virtual bool isReady();
 
 	/** Activated on leaving the mode by mode manager state */
 	virtual void onLeave();

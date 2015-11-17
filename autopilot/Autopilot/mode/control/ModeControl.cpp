@@ -138,7 +138,7 @@ void ModeControl::updateStep()
 
 
 ModeControl::ModeControl()
-: system::Mode()
+: infra::Mode()
 {
 }
 
@@ -153,6 +153,12 @@ void ModeControl::onEnter()
 	 * mind that some transitory effect may result from this */
 	_attCtrl.reset();
 	_navCtrl.reset();
+}
+
+/** @brief Verify if transition to this mode is possible */
+bool ModeControl::isReady()
+{
+	return true;
 }
 
 /** @brief Execute current step */

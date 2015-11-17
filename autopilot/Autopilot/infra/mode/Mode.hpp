@@ -8,20 +8,23 @@
 #ifndef GCS_MODE_MODE_HPP_
 #define GCS_MODE_MODE_HPP_
 
-namespace system {
+namespace infra {
 
 class Mode {
 public:
 	Mode();
 	virtual ~Mode();
 
-	/** Activated on entering the mode by mode manager */
+	/** @brief Activated on entering the mode by mode manager */
 	virtual void onEnter() = 0;
 
-	/** Activated on leaving the mode by mode manager state */
+	/** @brief Verify if transition to this mode is possible */
+	virtual bool isReady() = 0;
+
+	/** @brief Activated on leaving the mode by mode manager state */
 	virtual void onLeave() = 0;
 };
 
-} /* namespace system */
+} /* namespace infra */
 
 #endif /* GCS_MODE_MODE_HPP_ */

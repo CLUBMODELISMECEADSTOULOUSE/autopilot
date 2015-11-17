@@ -9,7 +9,9 @@
 
 namespace system {
 
-ModeSystem::ModeSystem() {
+ModeSystem::ModeSystem()
+: Mode()
+{
 	// TODO Auto-generated constructor stub
 
 }

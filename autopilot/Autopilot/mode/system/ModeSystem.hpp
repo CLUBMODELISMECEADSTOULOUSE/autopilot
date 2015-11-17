@@ -8,11 +8,11 @@
 #ifndef MODE_SYSTEM_MODESYSTEM_HPP_
 #define MODE_SYSTEM_MODESYSTEM_HPP_
 
-#include <mode/Mode.hpp>
+#include <infra/mode/Mode.hpp>
 
 namespace system {
 
-class ModeSystem : public Mode {
+class ModeSystem : public infra::Mode {
 public:
 	ModeSystem();
 	virtual ~ModeSystem();
