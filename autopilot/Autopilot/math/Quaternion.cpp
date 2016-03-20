@@ -119,9 +119,6 @@ void Quaternion::from_dcm(const Matrix3<float>& m)
 	{
 		scalar = 0.5 * sqrt(tmp1);
 		den = 0.25 / scalar;
-//		vector.x = (m.c.y - m.b.z) * den ;
-//		vector.y = (m.a.z - m.c.x) * den ;
-//		vector.z = (m.b.x - m.a.y) * den ;
 		vector.x = (m.c.y - m.b.z) * den ;
 		vector.y = (m.a.z - m.c.x) * den ;
 		vector.z = (m.b.x - m.a.y) * den ;

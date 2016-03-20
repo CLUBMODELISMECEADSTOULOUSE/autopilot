@@ -162,7 +162,7 @@ public:
     Vector3<T> operator /(const T& num) const
     {
     	Vector3<T> temp(*this);
-    	return temp/=num;
+    	return temp /= num;
     }
 
     // addition
@@ -189,7 +189,7 @@ public:
     }
 
     // uniform scaling
-    Vector3<T> &operator /=(const T num)
+    Vector3<T> &operator /= (const T& num)
     {
     	x /= num;
     	y /= num;
