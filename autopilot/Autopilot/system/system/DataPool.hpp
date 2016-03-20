@@ -27,27 +27,34 @@ public:
 	math::Vector3f imuAcc_B;
 	int16_t imuTemp;
 	uint32_t imuLastMeasDateUsec;
+	bool imuIsMeasAvail;
 
 	math::Vector3i compassMagRaw_U;
 	math::Vector3f compassMag_B;
 	uint32_t compassLastMeasDateUsec;
+	bool compassIsMeasAvail;
 
-	int32_t baroPressRaw_U;
-	int16_t baroTempRaw_U;
-	float baroPress_B;
+	int32_t baroPressRaw;
+	int16_t baroTempRaw;
+	float baroPress;
+	float baroTemp;
 	uint32_t baroLastMeasDateUsec;
+	bool baroIsMeasAvail;
 
-	bool estAttValid;
+	bool gpsIsMeasAvail;
+
 	math::Quaternion estAtt_IB;
 	math::Matrix3f estDcm_IB;
 	math::Vector3f estRate_B;
-	bool estPosValid;
 	math::Vector3f estPos_I;
 	math::Vector3f estVel_I;
+	float estRefBaroPress;
+	float estRefBaroTemp;
 
 	math::Quaternion guidAtt_IB;
 	math::Matrix3f guidDcm_IB;
 	math::Vector3f guidRate_B;
+	math::Vector3f guidRateFilt_B;
 	math::Vector3f guidPos_I;
 	math::Vector3f guidVel_I;
 

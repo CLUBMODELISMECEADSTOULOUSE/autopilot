@@ -10,6 +10,10 @@
 namespace system {
 
 DataPool::DataPool()
+: compassIsMeasAvail(false),
+  imuIsMeasAvail(false),
+  baroIsMeasAvail(false),
+  gpsIsMeasAvail(false)
 {
 	for (uint8_t idx = 0 ; idx<CNF_PWM_NUM_TO_DEVICE ; idx++)
 	{
