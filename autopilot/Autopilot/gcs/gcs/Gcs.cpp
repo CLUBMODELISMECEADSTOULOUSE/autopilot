@@ -462,39 +462,41 @@ void Gcs::handleMessageParamSet(uint8_t sysid, uint8_t compId, const mavlink_par
 	if (res)
 	{
 		mgt.getInfo(param.idx,&param.type, &param.name[0]);
-		switch (param.type)
-		{
-		case MAV_PARAM_TYPE_INT8:
-			param.value.INT8 = (int8_t) packet.param_value;
-			mgt.write(param.idx,param.value);
-			break;
-		case MAV_PARAM_TYPE_UINT8:
-			param.value.UINT8 = (uint8_t) packet.param_value;
-			mgt.write(param.idx,param.value);
-			break;
-		case MAV_PARAM_TYPE_INT16:
-			param.value.INT16 = (int16_t) packet.param_value;
-			mgt.write(param.idx,param.value);
-			break;
-		case MAV_PARAM_TYPE_UINT16:
-			param.value.UINT16 = (uint16_t) packet.param_value;
-			mgt.write(param.idx,param.value);
-			break;
-		case MAV_PARAM_TYPE_INT32:
-			param.value.INT32 = (int32_t) packet.param_value;
-			mgt.write(param.idx,param.value);
-			break;
-		case MAV_PARAM_TYPE_UINT32:
-			param.value.UINT32 = (uint32_t) packet.param_value;
-			mgt.write(param.idx,param.value);
-			break;
-		case MAV_PARAM_TYPE_REAL32:
-			param.value.REAL32 = packet.param_value;
-			mgt.write(param.idx,param.value);
-			break;
-		default:
-			break;
-		}
+		param.value.REAL32 = packet.param_value;
+		mgt.write(param.idx,param.value);
+//		switch (param.type)
+//		{
+//		case MAV_PARAM_TYPE_INT8:
+//			param.value.INT8 = (int8_t) packet.param_value;
+//			mgt.write(param.idx,param.value);
+//			break;
+//		case MAV_PARAM_TYPE_UINT8:
+//			param.value.UINT8 = (uint8_t) packet.param_value;
+//			mgt.write(param.idx,param.value);
+//			break;
+//		case MAV_PARAM_TYPE_INT16:
+//			param.value.INT16 = (int16_t) packet.param_value;
+//			mgt.write(param.idx,param.value);
+//			break;
+//		case MAV_PARAM_TYPE_UINT16:
+//			param.value.UINT16 = (uint16_t) packet.param_value;
+//			mgt.write(param.idx,param.value);
+//			break;
+//		case MAV_PARAM_TYPE_INT32:
+//			param.value.INT32 = (int32_t) packet.param_value;
+//			mgt.write(param.idx,param.value);
+//			break;
+//		case MAV_PARAM_TYPE_UINT32:
+//			param.value.UINT32 = (uint32_t) packet.param_value;
+//			mgt.write(param.idx,param.value);
+//			break;
+//		case MAV_PARAM_TYPE_REAL32:
+//			param.value.REAL32 = packet.param_value;
+//			mgt.write(param.idx,param.value);
+//			break;
+//		default:
+//			break;
+//		}
 
 		// Read parameter information
 		mgt.read(param.idx,param.value);
@@ -1195,6 +1197,7 @@ bool Gcs::sendNextParam()
 					param_value = (float) value.REAL32;
 					break;
 				}
+				param_value = value.REAL32;
 //				hw::Serial& com = system::getCom0();
 //				char buffer[100];
 //				sprintf(buffer,"sending %d/%d\n",_paramListCurrentIdx,count);
@@ -1282,10 +1285,10 @@ bool Gcs::sendImu2()
 		mavlink_msg_raw_pressure_send(
 			_chan,
 			now,
-			system::system.dataPool.baroPressRaw_U,
+			system::system.dataPool.baroPressRaw,
 			0,
 			0,
-			system::system.dataPool.baroTempRaw_U);
+			system::system.dataPool.baroTempRaw);
 
 		result = true;
 	}
@@ -1299,7 +1302,9 @@ bool Gcs::sendImu3()
 	if (channel->canSend(MAVLINK_NUM_NON_PAYLOAD_BYTES+MAVLINK_MSG_ID_ATTITUDE_LEN))
 	{
 		uint32_t now = millis();
-		float roll, pitch, yaw;
+		float roll,
+			  pitch,
+			  yaw;
 		system::system.dataPool.estDcm_IB.to_euler(&roll, &pitch, &yaw);
 		mavlink_msg_attitude_send(
 			_chan,
