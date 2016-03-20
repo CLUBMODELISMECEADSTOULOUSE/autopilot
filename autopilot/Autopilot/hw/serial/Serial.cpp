@@ -21,8 +21,8 @@ Serial::Serial(
 		const uint8_t u2x,
 		const uint8_t portEnableBits,
 		const uint8_t portTxBits,
-		infra::Buffer& buffRx,
-		infra::Buffer& buffTx)
+		infra::BufferReadProtected& buffRx,
+		infra::BufferWriteProtected& buffTx)
 : InputStream(),
   OutputStream(),
   _baudrate(0),

@@ -35,13 +35,15 @@
 #include <system/system/Dynamics.hpp>
 
 #include <fdir/mgt/FdirManager.hpp>
+#include <sens/imu/Imu.hpp>
+
 
 #ifndef SERIAL0_RX_LEN
 #define SERIAL0_RX_LEN (256)
 #endif
 
 #ifndef SERIAL0_TX_LEN
-#define SERIAL0_TX_LEN (128)
+#define SERIAL0_TX_LEN (256)
 #endif
 
 
@@ -136,7 +138,13 @@ public:
 	inline hw::Radio& getRadio();
 
 	/** @brief FDIR manager */
-	fdir::FdirManager& getFdir();
+	inline fdir::FdirManager& getFdir();
+
+	/** @brief Get Imu management */
+	inline sensors::Imu& getImuMgt();
+
+	/** @brief Get estimator */
+	inline autom::SimpleAttitudeKalmanFilter& getEstimator();
 
 	/* ----- Motors ----------------------------------- */
 protected:
@@ -182,10 +190,10 @@ protected:
 	uint8_t _buffTx0_buffer[SERIAL0_TX_LEN];
 
 	/** @brief RX circular buffer for Serial #0 */
-	infra::Buffer _buffRx0;
+	infra::BufferReadProtected _buffRx0;
 
 	/** @brief TX circular buffer for Serial #0 */
-	infra::Buffer _buffTx0;
+	infra::BufferWriteProtected _buffTx0;
 
 	/** @brief SPI bus object */
 	hw::SpiBus _spiBus;
@@ -229,6 +237,8 @@ protected:
 	/** @brief FDIR manager */
 	fdir::FdirManager _fdir;
 
+	/** @brief Imu management */
+	sensors::Imu _imuMgt;
 };
 
 hw::Serial& System::getCom0()
@@ -279,9 +289,21 @@ System::Mode System::getMode()
 }
 
 /** @brief Getter method for dynamics */
-inline fdir::FdirManager& System::getFdir()
+fdir::FdirManager& System::getFdir()
 {
 	return _fdir;
+}
+
+/** @brief Get Imu management */
+sensors::Imu& System::getImuMgt()
+{
+	return _imuMgt;
+}
+
+/** @brief Get estimator */
+autom::SimpleAttitudeKalmanFilter& System::getEstimator()
+{
+	return _estimator;
 }
 
 extern System system;

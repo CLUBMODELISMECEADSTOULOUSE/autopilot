@@ -35,7 +35,7 @@ System::System()
   _i2c(),
   _imu(
 		  _spiBus,
-		  hw::HalImuMpu6000::E_GYR_CNF_1000DPS,
+		  hw::HalImuMpu6000::E_GYR_CNF_250DPS,
 		  hw::HalImuMpu6000::E_ACC_CNF_4G,
 		  hw::HalImuMpu6000::E_UPT_FREQ_500HZ),
   _baro(_spiBus),
@@ -47,7 +47,8 @@ System::System()
   _mavChannel(MAVLINK_COMM_0,_com0),
   _gcs(MAVLINK_COMM_0),
   _estimator(paramEst),
-  _timerArmMgt(0)
+  _timerArmMgt(0),
+  _imuMgt(_imu, imuMgtParam)
 {
 
 }
@@ -94,7 +95,7 @@ void System::initialize()
 	/* Short pause to ensure SPI reset */
 	infra::Task::delay(10);
 
-	_imu.initialize();
+	_imuMgt.initialize();
 	_baro.initialize();
 
 	/* Short pause to ensure SPI reset */
@@ -123,6 +124,7 @@ void System::initialize()
 
 	/* Initialize control mode */
 	ModeControl::initialize();
+
 }
 
 void System::execute()
@@ -172,9 +174,10 @@ void System::executeInitMode()
 	_gcs.processServices();
 
 	/* Auto switch to ready */
-	_timerArmMgt++;
-	if (_timerArmMgt >= 1000)
+	if (_estimator.getState() != autom::SimpleAttitudeKalmanFilter::E_STATE_INIT)
+	{
 		setMode(E_SYS_MODE_READY);
+	}
 }
 
 /** @brief Execute ready mode */
@@ -269,7 +272,8 @@ void System::executeArmedMode()
 	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_ROLL))<100);
 	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_PITCH))<100);
 	verifCond = verifCond && (_radio.getUnsigned(hw::Radio::E_RADIO_CHANNEL_THRUST)<100);
-	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_YAW))<100);
+//	verifCond = verifCond && ((_radio.getSignedMinVal(hw::Radio::E_RADIO_CHANNEL_YAW)+100)>=_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_YAW));
+	verifCond = verifCond && (math_abs(_radio.getSigned(hw::Radio::E_RADIO_CHANNEL_YAW))<= 100);
 	// TODO add control mode verification (today only stabilized)
 
 	/* Timer management */
@@ -395,22 +399,23 @@ void System::processRawSensors()
 	uint32_t now = micros();
 
 	// Sample compass
-	if (_compass.sample(dataPool.compassMagRaw_U))
+	dataPool.compassIsMeasAvail = _compass.sample(dataPool.compassMagRaw_U);
+	if (dataPool.compassIsMeasAvail)
 	{
 		dataPool.compassLastMeasDateUsec = now;
+		math::Vector3i biasMag(95, -24, 4);
+		dataPool.compassMagRaw_U -= biasMag;
 	}
 
 	// Sample barometer
-	if (_baro.sample(dataPool.baroPressRaw_U, dataPool.baroTempRaw_U))
+	dataPool.baroIsMeasAvail = _baro.sample(dataPool.baroPressRaw, dataPool.baroTempRaw);
+	if (dataPool.baroIsMeasAvail)
 	{
 		dataPool.baroLastMeasDateUsec = now;
 	}
 
 	// Sample imu1
-	if (_imu.sample(dataPool.imuRateRaw_U, dataPool.imuAccRaw_U,dataPool.imuTemp))
-	{
-		dataPool.imuLastMeasDateUsec = now;
-	}
+	_imuMgt.execute();
 }
 
 /** @brief Process RC (raw) */
@@ -424,29 +429,17 @@ void System::postProcessSensors()
 {
 //	char buffer[100];
 
-	/* IMU gyro */
-	dataPool.imuRate_B(
-			((float) dataPool.imuRateRaw_U.x) * GYRO_SCALE_1000DPS,
-			((float) dataPool.imuRateRaw_U.y) * GYRO_SCALE_1000DPS,
-			((float) dataPool.imuRateRaw_U.z) * GYRO_SCALE_1000DPS);
-
-	/* IMU acco */
-	dataPool.imuAcc_B(
-			((float) dataPool.imuAccRaw_U.x) * ACC_SCALE_4G,
-			((float) dataPool.imuAccRaw_U.y) * ACC_SCALE_4G,
-			((float) dataPool.imuAccRaw_U.z) * ACC_SCALE_4G);
-
 	/* Compass */
 	dataPool.compassMag_B(
-			((float) (dataPool.compassMagRaw_U.x - 61)) * HALMAGHMC5883L_LSB_1_30GA,
-			((float) (dataPool.compassMagRaw_U.y + 27)) * HALMAGHMC5883L_LSB_1_30GA,
-			((float) (dataPool.compassMagRaw_U.z -  3)) * HALMAGHMC5883L_LSB_1_30GA);
+			((float) (dataPool.compassMagRaw_U.x)) * HALMAGHMC5883L_LSB_1_30GA,
+			((float) (dataPool.compassMagRaw_U.y)) * HALMAGHMC5883L_LSB_1_30GA,
+			((float) (dataPool.compassMagRaw_U.z)) * HALMAGHMC5883L_LSB_1_30GA);
 }
 
 /** @brief Process estimation */
 void System::processEstimation()
 {
-	_estimator.update();
+	_estimator.execute();
 }
 
 /** @brief Process actuators */

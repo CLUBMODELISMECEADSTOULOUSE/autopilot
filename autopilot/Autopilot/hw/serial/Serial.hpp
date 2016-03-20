@@ -8,7 +8,8 @@
 #ifndef SERIAL_HPP_
 #define SERIAL_HPP_
 
-#include <infra/buffer/Buffer.hpp>
+#include <infra/buffer/BufferReadProtected.hpp>
+#include <infra/buffer/BufferWriteProtected.hpp>
 #include <hw/io/InputStream.hpp>
 #include <hw/io/OutputStream.hpp>
 
@@ -47,8 +48,8 @@ public:
 			const uint8_t u2x,
 			const uint8_t portEnableBits,
 			const uint8_t portTxBits,
-			infra::Buffer& buffRx,
-			infra::Buffer& buffTx);
+			infra::BufferReadProtected& buffRx,
+			infra::BufferWriteProtected& buffTx);
 	virtual ~Serial();
 
 	virtual bool open(uint32_t baudrate);
@@ -121,8 +122,8 @@ public:
 	const uint8_t	_portTxBits;			///< tx data and completion interrupt enables
 
 	// Rx/Tx buffers
-	infra::Buffer& _buffRx;
-	infra::Buffer& _buffTx;
+	infra::BufferReadProtected& _buffRx;
+	infra::BufferWriteProtected& _buffTx;
 
 	// Status
 	bool _open;

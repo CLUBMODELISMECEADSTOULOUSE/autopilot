@@ -43,8 +43,17 @@ public:
 	/** @brief Reset the buffer (free all space) */
 	virtual void reset();
 
+protected:
+	virtual void getIdxHeadProtected(uint16_t& idxHead);
+	virtual void getIdxTailProtected(uint16_t& idxTail);
+	virtual void setIdxHeadProtected(const uint16_t& idxHead);
+	virtual void setIdxTailProtected(const uint16_t& idxTail);
+	virtual void incrIdxHeadProtected();
+	virtual void incrIdxTailProtected();
+	virtual void incrIdxHeadProtected(const uint16_t& len);
+	virtual void incrIdxTailProtected(const uint16_t& len);
 //protected:
-
+public:
 	/** @brief buffer */
 	uint8_t *_buffer;
 
