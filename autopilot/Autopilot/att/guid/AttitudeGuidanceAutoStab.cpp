@@ -12,24 +12,12 @@
 
 namespace attitude {
 
-const autom::SecondOrderFilter::Parameter paramSecOrderFiltAttGuid = {
-		1.98250832e-02,
-		3.96501664e-02,
-		1.98250832e-02,
-		1.56731055e+00,
-		-6.46610882e-01
-};
-
 AttitudeGuidanceAutoStab::AttitudeGuidanceAutoStab()
 : AttitudeGuidance(),
   _angRollPrev(0.),
   _angPitchPrev(0.),
   _angYawPrev(0.),
-  _attNormInv(1.),
-  _chanFiltersRoll(paramSecOrderFiltAttGuid),
-  _chanFiltersPitch(paramSecOrderFiltAttGuid),
-  _chanFiltersYaw(paramSecOrderFiltAttGuid)
-
+  _attNormInv(1.)
 {
 	_paramScalePwm[ATTITUDE_GUIDANCE_IDX_ROLL]  = ATTITUDE_GUIDANCE_MODE_AUTOSTAB_PWM_SCALE_ROLL;
 	_paramScalePwm[ATTITUDE_GUIDANCE_IDX_PITCH] = ATTITUDE_GUIDANCE_MODE_AUTOSTAB_PWM_SCALE_PITCH;
@@ -71,23 +59,21 @@ void AttitudeGuidanceAutoStab::initialize(
 	_angRollPrev = -crossProd.x;
 	_angPitchPrev = -crossProd.y;
 	_angYawPrev = ldexpf(atan2f(q_IB1.vector.z,q_IB1.scalar),1);
-	_chanFiltersRoll.reset(_angRollPrev);
-	_chanFiltersPitch.reset(_angPitchPrev);
-	_chanFiltersYaw.reset(0.);
 }
 
 /** @brief Compute the guidance */
-void AttitudeGuidanceAutoStab::calcGuidance(
-		hw::Radio& radio,
-		math::Quaternion& guidQuat_IB,
-		math::Vector3f& guidRate_B,
-		bool updateYaw)
+void AttitudeGuidanceAutoStab::execute()
 {
+	hw::Radio& radio = system::system.getRadio();
+	system::DataPool& datapool = system::system.dataPool;
+	math::Vector3f& guidRate_B = datapool.guidRate_B;
+	math::Quaternion& guidQuat_IB = datapool.guidAtt_IB;
+
 	/* Compute yaw rate from PWM */
-	float rateYaw = _chanFiltersYaw.apply(((float)radio.getSigned(hw::Radio::E_RADIO_CHANNEL_YAW))*_paramScalePwm[ATTITUDE_GUIDANCE_IDX_YAW]);
+	float rateYaw = ((float)radio.getSigned(hw::Radio::E_RADIO_CHANNEL_YAW))*_paramScalePwm[ATTITUDE_GUIDANCE_IDX_YAW];
 
 	/* Case no yaw */
-	if (!updateYaw)
+	if (!_updateYaw)
 		rateYaw = 0.;
 
 	/* Build yaw angle by integrating pwm input */
@@ -105,18 +91,24 @@ void AttitudeGuidanceAutoStab::calcGuidance(
 			sinf(ldexpf(_angYawPrev, -1)));
 
 	/* Build seat rotation */
-	float angRoll = _chanFiltersRoll.apply(((float)radio.getSigned(hw::Radio::E_RADIO_CHANNEL_ROLL))*_paramScalePwm[ATTITUDE_GUIDANCE_IDX_ROLL]);
-	float angPitch = _chanFiltersPitch.apply(((float)radio.getSigned(hw::Radio::E_RADIO_CHANNEL_PITCH))*_paramScalePwm[ATTITUDE_GUIDANCE_IDX_PITCH]);
+	float angRoll = ((float)radio.getSigned(hw::Radio::E_RADIO_CHANNEL_ROLL))*_paramScalePwm[ATTITUDE_GUIDANCE_IDX_ROLL];
+	float angPitch = ((float)radio.getSigned(hw::Radio::E_RADIO_CHANNEL_PITCH))*_paramScalePwm[ATTITUDE_GUIDANCE_IDX_PITCH];
 
+//	math::Quaternion guidQuat_BYawB(
+//			1 - ldexpf(angRoll*angRoll + angPitch*angPitch, -1),
+//			angRoll - angRoll*angRoll*angRoll * 0.1666667,
+//			angPitch - angPitch*angPitch*angPitch * 0.1666667,
+//			0.);
 	math::Quaternion guidQuat_BYawB(
-			1 - ldexpf(angRoll*angRoll + angPitch*angPitch, -1),
-			angRoll - angRoll*angRoll*angRoll * 0.1666667,
-			angPitch - angPitch*angPitch*angPitch * 0.1666667,
+			1,
+			angRoll,
+			angPitch,
 			0.);
+	guidQuat_BYawB /= guidQuat_BYawB.norm();
 
 	/* Combine rotations */
 	guidQuat_IB(guidQuat_IBYaw * guidQuat_BYawB);
-	_attNormInv = guidQuat_IB.normalize(1,_attNormInv);
+//	_attNormInv = guidQuat_IB.normalize(1,_attNormInv);
 
 	/* Compute rate */
 	guidRate_B(
@@ -127,6 +119,22 @@ void AttitudeGuidanceAutoStab::calcGuidance(
 	_angRollPrev = angRoll;
 	_angPitchPrev = angPitch;
 }
+
+/** @brief Activated on entering the mode by mode manager */
+void AttitudeGuidanceAutoStab::onEnter()
+{
+	system::DataPool& dataPool = system::system.dataPool;
+
+	/* Then initialize internal data using current estimation */
+	initialize(dataPool.estAtt_IB, dataPool.estRate_B);
+}
+
+/** @brief Activated on leaving the mode by mode manager state */
+void AttitudeGuidanceAutoStab::onLeave()
+{
+}
+
+
 
 
 } /* namespace attitude */

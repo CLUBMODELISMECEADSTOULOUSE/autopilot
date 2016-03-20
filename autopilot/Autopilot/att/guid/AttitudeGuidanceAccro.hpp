@@ -22,16 +22,20 @@ public:
 	AttitudeGuidanceAccro();
 	virtual ~AttitudeGuidanceAccro();
 
+protected:
 	/** @brief Initialize internal variable */
 	virtual void initialize(
 			const math::Quaternion& quat_IB,
 			const math::Vector3f& rate_B);
 
-	/** @brief Compute the guidance */
-	void calcGuidance(
-			hw::Radio& radio,
-			math::Quaternion& guidQuat_IB,
-			math::Vector3f& guidRate_B);
+	/** @brief Execute current step */
+	virtual void execute() ;
+
+	/** @brief Activated on leaving the mode by mode manager state */
+	virtual void onLeave() ;
+
+	/** @brief Activated on entering the mode by mode manager */
+	virtual void onEnter() ;
 
 protected:
 

@@ -8,9 +8,7 @@
 #ifndef ATT_GUID_ATTITUDEGUIDANCEAUTOSTAB_HPP_
 #define ATT_GUID_ATTITUDEGUIDANCEAUTOSTAB_HPP_
 
-#include <hw/radio/Radio.hpp>
 #include "AttitudeGuidance.hpp"
-#include <autom/filt/SecondOrderFilter.hpp>
 
 namespace attitude {
 
@@ -19,17 +17,23 @@ public:
 	AttitudeGuidanceAutoStab();
 	virtual ~AttitudeGuidanceAutoStab();
 
-	/** @brief Initialize internal variable */
+	/** @brief Set update yaw */
+	inline void setYawUpdate(bool updateYaw) ;
+
+protected:
+	/** @brief Activated on leaving the mode by mode manager state */
+	virtual void onLeave() ;
+
+	/** @brief Activated on entering the mode by mode manager */
+	virtual void onEnter() ;
+
+	/** @brief Execute current step */
+	virtual void execute() ;
+
+	/** @brief Initialize internal state */
 	virtual void initialize(
 			const math::Quaternion& quat_IB,
-			const math::Vector3f& rate_B);
-
-	/** @brief Compute the guidance */
-	void calcGuidance(
-			hw::Radio& radio,
-			math::Quaternion& guidQuat_IB,
-			math::Vector3f& guidRate_B,
-			bool updateYaw);
+			const math::Vector3f& rate_B) ;
 
 protected:
 	/** @brief Scale parameter in Autostab mode */
@@ -47,11 +51,16 @@ protected:
 	/** @brief Norm */
 	float _attNormInv;
 
-	autom::SecondOrderFilter _chanFiltersRoll;
-	autom::SecondOrderFilter _chanFiltersPitch;
-	autom::SecondOrderFilter _chanFiltersYaw;
-
+	/** @brief Update yaw */
+	bool _updateYaw;
 };
+
+/** @brief Set update yaw */
+void AttitudeGuidanceAutoStab::setYawUpdate(bool updateYaw)
+{
+	_updateYaw = updateYaw;
+}
+
 
 } /* namespace attitude */
 

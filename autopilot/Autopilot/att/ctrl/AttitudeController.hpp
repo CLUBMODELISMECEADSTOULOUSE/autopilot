@@ -21,9 +21,12 @@ public:
 		autom::ControllerPid3Axes<float>::Parameter ctrl;
 		float maxCosAngOverTwoErr;
 		float maxSinAngOverTwoErr;
-		autom::SecondOrderFilter::Parameter filterX;
-		autom::SecondOrderFilter::Parameter filterY;
-		autom::SecondOrderFilter::Parameter filterZ;
+		autom::SecondOrderFilter::Parameter filterRateDemX;
+		autom::SecondOrderFilter::Parameter filterRateDemY;
+		autom::SecondOrderFilter::Parameter filterRateDemZ;
+		autom::SecondOrderFilter::Parameter filterTrqX;
+		autom::SecondOrderFilter::Parameter filterTrqY;
+		autom::SecondOrderFilter::Parameter filterTrqZ;
 	} Parameter;
 
 public:
@@ -49,13 +52,22 @@ protected:
 	const AttitudeController::Parameter& _param;
 
 	/** @brief Filter for X axis */
-	autom::SecondOrderFilter _filterX;
+	autom::SecondOrderFilter _filterRateDemX;
 
 	/** @brief Filter for Y axis */
-	autom::SecondOrderFilter _filterY;
+	autom::SecondOrderFilter _filterRateDemY;
 
 	/** @brief Filter for Z axis */
-	autom::SecondOrderFilter _filterZ;
+	autom::SecondOrderFilter _filterRateDemZ;
+
+	/** @brief Filter for X axis */
+	autom::SecondOrderFilter _filterTrqX;
+
+	/** @brief Filter for Y axis */
+	autom::SecondOrderFilter _filterTrqY;
+
+	/** @brief Filter for Z axis */
+	autom::SecondOrderFilter _filterTrqZ;
 };
 
 } /* namespace attitude */

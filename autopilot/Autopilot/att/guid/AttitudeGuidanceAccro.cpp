@@ -6,6 +6,7 @@
  */
 
 #include "AttitudeGuidanceAccro.hpp"
+#include <system/system/System.hpp>
 
 namespace attitude {
 
@@ -29,11 +30,14 @@ void AttitudeGuidanceAccro::initialize(
 	_attNormInv = 1. / quat_IB.norm();
 }
 
-void AttitudeGuidanceAccro::calcGuidance(
-		hw::Radio& radio,
-		math::Quaternion& guidQuat_IB,
-		math::Vector3f& guidRate_B)
+/** @brief Execute current step */
+void AttitudeGuidanceAccro::execute()
 {
+	hw::Radio& radio = system::system.getRadio();
+	system::DataPool& datapool = system::system.dataPool;
+	math::Vector3f& guidRate_B = datapool.guidRate_B;
+	math::Quaternion& guidQuat_IB = datapool.guidAtt_IB;
+
 	/* Build rate from pwm inputs */
 	guidRate_B.x = ((float) radio.getSigned(hw::Radio::E_RADIO_CHANNEL_ROLL) )
 			* _paramScalePwm[ATTITUDE_GUIDANCE_IDX_ROLL];
@@ -49,8 +53,23 @@ void AttitudeGuidanceAccro::calcGuidance(
 			angInc.x - angInc.x*angInc.x*angInc.x * 0.1666667,
 			angInc.y - angInc.y*angInc.y*angInc.y * 0.1666667,
 			angInc.z - angInc.z*angInc.z*angInc.z * 0.1666667);
-	guidQuat_IB = guidQuat_IB * dQ;
+	guidQuat_IB(guidQuat_IB * dQ);
 	_attNormInv = guidQuat_IB.normalize(1,_attNormInv);
+}
+
+/** @brief Activated on leaving the mode by mode manager state */
+void AttitudeGuidanceAccro::onLeave()
+{
+
+}
+
+/** @brief Activated on entering the mode by mode manager */
+void AttitudeGuidanceAccro::onEnter()
+{
+	system::DataPool& dataPool = system::system.dataPool;
+
+	/* Then initialize internal data using current estimation */
+	initialize(dataPool.estAtt_IB, dataPool.estRate_B);
 }
 
 } /* namespace attitude */
