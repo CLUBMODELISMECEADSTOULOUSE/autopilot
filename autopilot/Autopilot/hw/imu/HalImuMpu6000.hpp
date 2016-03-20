@@ -122,6 +122,9 @@ protected:
 	/** @brief Product ID */
 	uint8_t _productId;
 
+	math::Vector3i _gyroBias_U;
+	math::Vector3i _accoBias_U;
+
 protected:
 	/** @brief Imu for interrupt handling */
 	static HalImuMpu6000* _imu;

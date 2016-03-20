@@ -199,7 +199,9 @@ HalImuMpu6000::HalImuMpu6000(
   _gyrCnf(gyrCnf),
   _accCnf(accCnf),
   _frequence(frequence),
-  _productId(0)
+  _productId(0),
+  _gyroBias_U(0,0,0),
+  _accoBias_U(0,0,0)
 {
 
 	/* Set gyro LSB */
@@ -370,12 +372,14 @@ bool HalImuMpu6000::sample (
 				 (int16_t) (dataLong[4] / read),  //  Y
 				 (int16_t) (dataLong[5] / read),  //  X
 				-(int16_t) (dataLong[3] / read)); // -Z
+		acc_U -= _accoBias_U;
 
 		/* Store angular rate */
 		rate_U(
 				 (int16_t) (dataLong[1] / read),  //  Y
 				 (int16_t) (dataLong[2] / read),  //  X
 				-(int16_t) (dataLong[0] / read)); // -Z
+		rate_U -= _gyroBias_U;
 	}
 
 	/* temperature not used */
@@ -411,6 +415,8 @@ void HalImuMpu6000::handleReadyInterrupt(void)
 
 void HalImuMpu6000::getGyrOffsets(math::Vector3i& gyrOffsets_U) const
 {
+	gyrOffsets_U(_gyroBias_U);
+	return;
 	gyrOffsets_U(
 			// Y
 			(int16_t) (register_read(MPUREG_YG_OFFS_USRH)<<8 | register_read(MPUREG_YG_OFFS_USRL)),
@@ -421,21 +427,30 @@ void HalImuMpu6000::getGyrOffsets(math::Vector3i& gyrOffsets_U) const
 }
 void HalImuMpu6000::setGyrOffsets(const math::Vector3i& gyrOffsets_U)
 {
+	_gyroBias_U(gyrOffsets_U);
+	return;
+	uint16_t tmp;
+
     // Y
-    register_write(MPUREG_YG_OFFS_USRH, (gyrOffsets_U.x >> 8) & 0xFF);
-    register_write(MPUREG_YG_OFFS_USRL, (gyrOffsets_U.x >> 0) & 0xFF);
+	tmp = (uint16_t)(gyrOffsets_U.x);
+    register_write(MPUREG_YG_OFFS_USRH, (tmp >> 8) & 0xFF);
+    register_write(MPUREG_YG_OFFS_USRL, (tmp >> 0) & 0xFF);
 
     // X
-    register_write(MPUREG_XG_OFFS_USRH, (gyrOffsets_U.y >> 8) & 0xFF);
-    register_write(MPUREG_XG_OFFS_USRL, (gyrOffsets_U.y >> 0) & 0xFF);
+	tmp = (uint16_t)(gyrOffsets_U.y);
+    register_write(MPUREG_XG_OFFS_USRH, (tmp >> 8) & 0xFF);
+    register_write(MPUREG_XG_OFFS_USRL, (tmp >> 0) & 0xFF);
 
     // -Z
-    register_write(MPUREG_ZG_OFFS_USRH, ((-gyrOffsets_U.z) >> 8) & 0xFF);
-    register_write(MPUREG_ZG_OFFS_USRL, ((-gyrOffsets_U.z) >> 0) & 0xFF);
+	tmp = (uint16_t)(-gyrOffsets_U.z);
+    register_write(MPUREG_ZG_OFFS_USRH, (tmp >> 8) & 0xFF);
+    register_write(MPUREG_ZG_OFFS_USRL, (tmp >> 0) & 0xFF);
 }
 
 void HalImuMpu6000::getAccOffsets(math::Vector3i& accOffsets_U) const
 {
+	accOffsets_U(_accoBias_U);
+	return;
 	accOffsets_U(
 			// Y
 			(int16_t) (register_read(MPUREG_YA_OFFS_H)<<8 | register_read(MPUREG_YA_OFFS_L)),
@@ -447,17 +462,24 @@ void HalImuMpu6000::getAccOffsets(math::Vector3i& accOffsets_U) const
 
 void HalImuMpu6000::setAccOffsets(const math::Vector3i& accOffsets_U)
 {
+	_accoBias_U(accOffsets_U);
+	return;
+	uint16_t tmp;
+
     // Y
-    register_write(MPUREG_YA_OFFS_H, (accOffsets_U.x >> 8) & 0xFF);
-    register_write(MPUREG_YA_OFFS_L, (accOffsets_U.x >> 0) & 0xFF);
+	tmp = (uint16_t)(accOffsets_U.x);
+    register_write(MPUREG_YA_OFFS_H, (tmp >> 8) & 0xFF);
+    register_write(MPUREG_YA_OFFS_L, (tmp >> 0) & 0xFF);
 
     // X
-    register_write(MPUREG_XA_OFFS_H, (accOffsets_U.y >> 8) & 0xFF);
-    register_write(MPUREG_XA_OFFS_L, (accOffsets_U.y >> 0) & 0xFF);
+	tmp = (uint16_t)(accOffsets_U.y);
+    register_write(MPUREG_XA_OFFS_H, (tmp >> 8) & 0xFF);
+    register_write(MPUREG_XA_OFFS_L, (tmp >> 0) & 0xFF);
 
     // -Z
-    register_write(MPUREG_ZA_OFFS_H, ((-accOffsets_U.z) >> 8) & 0xFF);
-    register_write(MPUREG_ZA_OFFS_L, ((-accOffsets_U.z) >> 0) & 0xFF);
+	tmp = (uint16_t)(-accOffsets_U.z);
+    register_write(MPUREG_ZA_OFFS_H, (tmp >> 8) & 0xFF);
+    register_write(MPUREG_ZA_OFFS_L, (tmp >> 0) & 0xFF);
 }
 
 
