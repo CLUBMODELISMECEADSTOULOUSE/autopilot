@@ -10,6 +10,7 @@
 
 #include <hw/radio/Radio.hpp>
 #include <system/system/Dynamics.hpp>
+#include <sens/imu/Imu.hpp>
 #include <autom/est/SimpleAttitudeKalmanFilter.hpp>
 
 namespace system {
@@ -22,6 +23,9 @@ extern const system::Dynamics::Parameter paramDyn;
 
 /** @brief Estimator parameter */
 extern const autom::SimpleAttitudeKalmanFilter::Parameter paramEst;
+
+/** @brief Imu management parameter */
+extern const sensors::Imu::Parameter imuMgtParam;
 
 } /* namespace system */
 

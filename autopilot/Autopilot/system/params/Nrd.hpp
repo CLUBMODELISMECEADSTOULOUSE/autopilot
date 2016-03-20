@@ -94,6 +94,6 @@
 /* **************************************************** */
 /* MAVLINK configuration */
 
-#define CONFIG_MAVLINK_EEPROMREV	(0x0011)
+#define CONFIG_MAVLINK_EEPROMREV	(0x0012)
 
 #endif /* NRD_H_ */

@@ -8,6 +8,7 @@
 #include "SystemData.hpp"
 #include <system/params/Nrd.hpp>
 #include <system/params/NrdGen.hpp>
+#include <hw/imu/HalImuMpu6000.hpp>
 
 namespace system {
 
@@ -39,6 +40,19 @@ const autom::SimpleAttitudeKalmanFilter::Parameter paramEst =
 		/* gainAttDriftCompass */
 		EST_GAIN_COMPASS_DRIFT
 };
+
+/** @brief Imu management parameter */
+const sensors::Imu::Parameter imuMgtParam =
+{
+		/** @brief Gyro noise variance to check calibration is ok */
+		50,
+		/** @brief Gyro lsb*/
+		GYRO_SCALE_250DPS,
+		/** @brief Accelerometer LSB */
+		ACC_SCALE_4G
+};
+
+
 
 } /* namespace system */
 
