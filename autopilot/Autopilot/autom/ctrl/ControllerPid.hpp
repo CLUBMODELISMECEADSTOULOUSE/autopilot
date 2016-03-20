@@ -118,14 +118,17 @@ void ControllerPid<T>::computeCommand(
 {
 	/* 0) Anti windup
 	 * Remove command error from integral term
+	 * _intCtrlErr = dem
+	 * errCommandPrev = dem - est
+	 * _intCtrlErr = _intCtrlErr - errCommandPrev
 	 */
-	if (_intCtrlErr<0)
+	if (_intCtrlErr < ((T) 0))
 	{
-		_intCtrlErr = math_max(0,errCommandPrev-_intCtrlErr);
+		_intCtrlErr = math_min(((T) 0),_intCtrlErr-errCommandPrev);
 	}
 	else
 	{
-		_intCtrlErr = math_max(0,_intCtrlErr-errCommandPrev);
+		_intCtrlErr = math_max(((T) 0),_intCtrlErr-errCommandPrev);
 	}
 
 	/* 1) Compute integral term */
