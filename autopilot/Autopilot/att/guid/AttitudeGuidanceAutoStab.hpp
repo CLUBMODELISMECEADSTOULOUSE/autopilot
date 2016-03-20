@@ -8,11 +8,11 @@
 #ifndef ATT_GUID_ATTITUDEGUIDANCEAUTOSTAB_HPP_
 #define ATT_GUID_ATTITUDEGUIDANCEAUTOSTAB_HPP_
 
-#include "AttitudeGuidance.hpp"
+#include "AttitudeGuidanceMode.hpp"
 
 namespace attitude {
 
-class AttitudeGuidanceAutoStab : public AttitudeGuidance {
+class AttitudeGuidanceAutoStab : public AttitudeGuidanceMode {
 public:
 	AttitudeGuidanceAutoStab();
 	virtual ~AttitudeGuidanceAutoStab();

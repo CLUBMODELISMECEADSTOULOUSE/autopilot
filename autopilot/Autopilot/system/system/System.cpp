@@ -123,7 +123,7 @@ void System::initialize()
 	_gcs.initialize();
 
 	/* Initialize control mode */
-	ModeControl::initialize();
+	_modeCtrlMgr.initialize();
 
 }
 
@@ -251,7 +251,7 @@ void System::executeArmedMode()
 	processEstimation();
 
 	/* Execute control mode manager */
-	ModeControl::execute();
+	_modeCtrlMgr.execute();
 
 	/* Process actuator */
 	processActuators();
@@ -350,7 +350,7 @@ bool System::switchToReadyMode()
 	_timerArmMgt = 0;
 
 	/* Set control mode to idle */
-	ModeControl::setMode(ModeControl::E_MODE_IDLE);
+	_modeCtrlMgr.setMode(ModeControlMgr::E_MODE_IDLE);
 
 	/* Disarm motors */
 	disarmMotor();
@@ -365,7 +365,7 @@ bool System::switchToArmedMode()
 
 	/* Switch the attitude and nav to demanded modes */
 	// TODO: implement selection according to PWM channel / mavlink services
-	ModeControl::setMode(ModeControl::E_MODE_AUTOSTAB);
+	_modeCtrlMgr.setMode(ModeControlMgr::E_MODE_AUTOSTAB);
 
 	if (result)
 	{
@@ -383,7 +383,7 @@ bool System::switchToArmedMode()
 bool System::switchToFailsafeMode()
 {
 	/* Set control mode to idle */
-	ModeControl::setMode(ModeControl::E_MODE_IDLE);
+	_modeCtrlMgr.setMode(ModeControlMgr::E_MODE_IDLE);
 
 	/* Disarm motors */
 	disarmMotor();

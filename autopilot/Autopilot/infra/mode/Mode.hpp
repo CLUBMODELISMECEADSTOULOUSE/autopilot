@@ -18,9 +18,6 @@ public:
 	/** @brief Activated on entering the mode by mode manager */
 	virtual void onEnter() = 0;
 
-	/** @brief Verify if transition to this mode is possible */
-	virtual bool isReady() = 0;
-
 	/** @brief Activated on leaving the mode by mode manager state */
 	virtual void onLeave() = 0;
 };

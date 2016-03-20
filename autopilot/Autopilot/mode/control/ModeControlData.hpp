@@ -8,7 +8,7 @@
 #ifndef MODE_CONTROL_MODECONTROLDATA_HPP_
 #define MODE_CONTROL_MODECONTROLDATA_HPP_
 
-#include "ModeControl.hpp"
+#include "ModeControlMgr.hpp"
 
 namespace system {
 

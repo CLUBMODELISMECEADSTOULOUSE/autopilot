@@ -13,7 +13,7 @@
 namespace attitude {
 
 AttitudeGuidanceAutoStab::AttitudeGuidanceAutoStab()
-: AttitudeGuidance(),
+: AttitudeGuidanceMode(),
   _angRollPrev(0.),
   _angPitchPrev(0.),
   _angYawPrev(0.),

@@ -9,7 +9,7 @@
 #define ATT_GUID_ATTITUDEGUIDANCEACCRO_HPP_
 
 #include <hw/radio/Radio.hpp>
-#include "AttitudeGuidance.hpp"
+#include "AttitudeGuidanceMode.hpp"
 
 #define ATTITUDE_GUIDANCE_MODE_RATE_PWM_SCALE_ROLL 		(0.0034907) /* rad/s/pwm */
 #define ATTITUDE_GUIDANCE_MODE_RATE_PWM_SCALE_PITCH 	(0.0034907) /* rad/s/pwm */
@@ -17,7 +17,7 @@
 
 namespace attitude {
 
-class AttitudeGuidanceAccro : public AttitudeGuidance {
+class AttitudeGuidanceAccro : public AttitudeGuidanceMode {
 public:
 	AttitudeGuidanceAccro();
 	virtual ~AttitudeGuidanceAccro();

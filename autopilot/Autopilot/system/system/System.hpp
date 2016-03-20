@@ -30,7 +30,7 @@
 #include <gcs/param/ParameterMgt.hpp>
 
 #include <autom/est/SimpleAttitudeKalmanFilter.hpp>
-#include <mode/control/ModeControl.hpp>
+#include <mode/control/ModeControlMgr.hpp>
 #include <system/system/DataPool.hpp>
 #include <system/system/Dynamics.hpp>
 
@@ -146,6 +146,10 @@ public:
 	/** @brief Get estimator */
 	inline autom::SimpleAttitudeKalmanFilter& getEstimator();
 
+	/** @brief Get Control Mode Manager */
+	inline ModeControlMgr& getModeCtrlMgr();
+
+
 	/* ----- Motors ----------------------------------- */
 protected:
 
@@ -239,6 +243,9 @@ protected:
 
 	/** @brief Imu management */
 	sensors::Imu _imuMgt;
+
+	/** @brief Control Mode Manager */
+	ModeControlMgr _modeCtrlMgr;
 };
 
 hw::Serial& System::getCom0()
@@ -304,6 +311,12 @@ sensors::Imu& System::getImuMgt()
 autom::SimpleAttitudeKalmanFilter& System::getEstimator()
 {
 	return _estimator;
+}
+
+/** @brief Get Control Mode Manager */
+ModeControlMgr& System::getModeCtrlMgr()
+{
+	return _modeCtrlMgr;
 }
 
 extern System system;

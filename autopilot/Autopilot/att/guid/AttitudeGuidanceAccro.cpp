@@ -11,7 +11,7 @@
 namespace attitude {
 
 AttitudeGuidanceAccro::AttitudeGuidanceAccro()
-: AttitudeGuidance(),
+: AttitudeGuidanceMode(),
   _attNormInv(1.)
 {
 	_paramScalePwm[ATTITUDE_GUIDANCE_IDX_ROLL]  = ATTITUDE_GUIDANCE_MODE_RATE_PWM_SCALE_ROLL;

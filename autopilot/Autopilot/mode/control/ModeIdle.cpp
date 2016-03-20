@@ -40,7 +40,7 @@ void ModeIdle::onEnter()
 	ModeControl::onEnter();
 
 	/* Change Attitude guidance mode */
-	attitude::AttitudeGuidance::setMode(attitude::AttitudeGuidance::E_MODE_NONE);
+	system::system.getModeCtrlMgr().getAttGuidMgr().setMode(attitude::AttitudeGuidanceMgr::E_MODE_NONE);
 }
 
 } /* namespace system */
