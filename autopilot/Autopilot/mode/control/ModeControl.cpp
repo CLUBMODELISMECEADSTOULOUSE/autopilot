@@ -21,9 +21,6 @@ attitude::AttitudeController ModeControl::_attCtrl(paramAttCtrl);
 /* Instantiation of navigation controller */
 navigation::NavigationController ModeControl::_navCtrl(paramNavCtrl);
 
-/* Instantiation of attitude guidance manager */
-attitude::AttitudeGuidanceManager ModeControl::_attGuidStateMachine;
-
 /* Instantiation of navigation guidance manager */
 navigation::NavigationGuidanceManager ModeControl::_navGuidStateMachine;
 
@@ -209,9 +206,6 @@ void ModeControl::stepAttitude()
 	 * assuming guidance is done at lower rate (nav
 	 * guidance step) */
 
-	/* Update guidance */
-	_attGuidStateMachine.execute();
-
 	/* Update Contol */
 	_attCtrl.execute();
 
@@ -239,7 +233,7 @@ void ModeControl::stepNavigation()
 
 	/* Update attitude control
 	 * (low frequency / may require nav info */
-	_attGuidStateMachine.execute();
+	attitude::AttitudeGuidance::executeStateMachine();
 }
 
 

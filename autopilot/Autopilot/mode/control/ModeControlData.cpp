@@ -53,44 +53,83 @@ const attitude::AttitudeController::Parameter paramAttCtrl =
 		K_ATTCTRL_MAXERRCOS,
 		/* maxSinAngOverTwoErr */
 		K_ATTCTRL_MAXERRSIN,
-		/* filterX */
+		/* filterRateDemX */
 		{
 				/* a0 */
-				K_ATTCTRL_FILT_X_NUM_0,
+				K_ATTCTRL_FILT_RATE_DEM_X_NUM_0,
 				/* a1 */
-				K_ATTCTRL_FILT_X_NUM_1,
+				K_ATTCTRL_FILT_RATE_DEM_X_NUM_1,
 				/* a2 */
-				K_ATTCTRL_FILT_X_NUM_2,
+				K_ATTCTRL_FILT_RATE_DEM_X_NUM_2,
 				/* -b1 */
-				-K_ATTCTRL_FILT_X_DEN_1,
+				-K_ATTCTRL_FILT_RATE_DEM_X_DEN_1,
 				/* -b2 */
-				-K_ATTCTRL_FILT_X_DEN_2,
+				-K_ATTCTRL_FILT_RATE_DEM_X_DEN_2,
 		},
-		/* filterY */
+		/* filterRateDemY */
 		{
 				/* a0 */
-				K_ATTCTRL_FILT_Y_NUM_0,
+				K_ATTCTRL_FILT_RATE_DEM_Y_NUM_0,
 				/* a1 */
-				K_ATTCTRL_FILT_Y_NUM_1,
+				K_ATTCTRL_FILT_RATE_DEM_Y_NUM_1,
 				/* a2 */
-				K_ATTCTRL_FILT_Y_NUM_2,
+				K_ATTCTRL_FILT_RATE_DEM_Y_NUM_2,
 				/* -b1 */
-				-K_ATTCTRL_FILT_Y_DEN_1,
+				-K_ATTCTRL_FILT_RATE_DEM_Y_DEN_1,
 				/* -b2 */
-				-K_ATTCTRL_FILT_Y_DEN_2,
+				-K_ATTCTRL_FILT_RATE_DEM_Y_DEN_2,
 		},
-		/* filterZ */
+		/* filterRateDemZ */
 		{
 				/* a0 */
-				K_ATTCTRL_FILT_Z_NUM_0,
+				K_ATTCTRL_FILT_RATE_DEM_Z_NUM_0,
 				/* a1 */
-				K_ATTCTRL_FILT_Z_NUM_1,
+				K_ATTCTRL_FILT_RATE_DEM_Z_NUM_1,
 				/* a2 */
-				K_ATTCTRL_FILT_Z_NUM_2,
+				K_ATTCTRL_FILT_RATE_DEM_Z_NUM_2,
 				/* -b1 */
-				-K_ATTCTRL_FILT_Z_DEN_1,
+				-K_ATTCTRL_FILT_RATE_DEM_Z_DEN_1,
 				/* -b2 */
-				-K_ATTCTRL_FILT_Z_DEN_2,
+				-K_ATTCTRL_FILT_RATE_DEM_Z_DEN_2,
+		},
+		/* filterTrqX */
+		{
+				/* a0 */
+				K_ATTCTRL_FILT_TRQ_X_NUM_0,
+				/* a1 */
+				K_ATTCTRL_FILT_TRQ_X_NUM_1,
+				/* a2 */
+				K_ATTCTRL_FILT_TRQ_X_NUM_2,
+				/* -b1 */
+				-K_ATTCTRL_FILT_TRQ_X_DEN_1,
+				/* -b2 */
+				-K_ATTCTRL_FILT_TRQ_X_DEN_2,
+		},
+		/* filterTrqY */
+		{
+				/* a0 */
+				K_ATTCTRL_FILT_TRQ_Y_NUM_0,
+				/* a1 */
+				K_ATTCTRL_FILT_TRQ_Y_NUM_1,
+				/* a2 */
+				K_ATTCTRL_FILT_TRQ_Y_NUM_2,
+				/* -b1 */
+				-K_ATTCTRL_FILT_TRQ_Y_DEN_1,
+				/* -b2 */
+				-K_ATTCTRL_FILT_TRQ_Y_DEN_2,
+		},
+		/* filterTrqZ */
+		{
+				/* a0 */
+				K_ATTCTRL_FILT_TRQ_Z_NUM_0,
+				/* a1 */
+				K_ATTCTRL_FILT_TRQ_Z_NUM_1,
+				/* a2 */
+				K_ATTCTRL_FILT_TRQ_Z_NUM_2,
+				/* -b1 */
+				-K_ATTCTRL_FILT_TRQ_Z_DEN_1,
+				/* -b2 */
+				-K_ATTCTRL_FILT_TRQ_Z_DEN_2,
 		}
 } ;
 

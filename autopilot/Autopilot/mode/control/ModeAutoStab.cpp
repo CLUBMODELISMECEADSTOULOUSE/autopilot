@@ -27,7 +27,7 @@ void ModeAutoStab::onEnter()
 	ModeControl::onEnter();
 
 	/* Change Attitude guidance mode */
-	ModeControl::_attGuidStateMachine.setMode(attitude::AttitudeGuidanceManager::E_MODE_AUTOSTAB_NOYAW);
+	attitude::AttitudeGuidance::setMode(attitude::AttitudeGuidance::E_MODE_AUTOSTAB_NOYAW);
 }
 
 /** @brief Execute navigation step */
@@ -51,7 +51,7 @@ void ModeAutoStab::stepNavigation()
 
 	/* Update attitude control
 	 * (low frequency / may require nav info */
-	_attGuidStateMachine.execute();
+	attitude::AttitudeGuidance::executeStateMachine();
 
 }
 

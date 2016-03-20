@@ -10,7 +10,7 @@
 
 #include <infra/mode/Mode.hpp>
 #include <autom/mod/ModulatorLut.hpp>
-#include <att/guid/AttitudeGuidanceManager.hpp>
+#include <att/guid/AttitudeGuidance.hpp>
 #include <att/ctrl/AttitudeController.hpp>
 #include <nav/guid/NavigationGuidanceManager.hpp>
 #include <nav/ctrl/NavigationController.hpp>
@@ -93,9 +93,6 @@ protected:
 protected:
 	/** @brief Attitude controller: (intended to be) common to all modes */
 	static attitude::AttitudeController _attCtrl;
-
-	/** @brief Attitude guidance state machine: (intended to be) common to all modes */
-	static attitude::AttitudeGuidanceManager _attGuidStateMachine;
 
 	/** @brief Navigation controller: (intended to be) common to all modes */
 	static navigation::NavigationController _navCtrl;

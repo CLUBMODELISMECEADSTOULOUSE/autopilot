@@ -19,6 +19,10 @@ public:
 
 	/** Execute current step */
 	virtual void execute(ModeControl::Step step);
+
+	/** Activated on entering the mode by mode manager */
+	virtual void onEnter();
+
 };
 
 } /* namespace system */

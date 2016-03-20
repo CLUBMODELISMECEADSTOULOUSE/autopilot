@@ -33,4 +33,14 @@ void ModeIdle::execute(ModeControl::Step step)
 	}
 }
 
+/** Activated on entering the mode by mode manager */
+void ModeIdle::onEnter()
+{
+	/* Call super */
+	ModeControl::onEnter();
+
+	/* Change Attitude guidance mode */
+	attitude::AttitudeGuidance::setMode(attitude::AttitudeGuidance::E_MODE_NONE);
+}
+
 } /* namespace system */
