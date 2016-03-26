@@ -52,7 +52,7 @@ void ModeControl::execute(Step step)
 
 	case E_STEP_ATTITUDE:
 
-		/* Process attitude step */
+		/* Process attitude step only */
 		stepAttitude();
 
 		break;
