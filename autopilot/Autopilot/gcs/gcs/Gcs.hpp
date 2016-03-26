@@ -22,7 +22,7 @@
 #endif
 
 #ifndef GCS_PERIOD_PARAM_MS
-#define GCS_PERIOD_PARAM_MS (100)
+#define GCS_PERIOD_PARAM_MS (10)
 #endif
 
 #ifndef GCS_PERIOD_MISSION_MS
