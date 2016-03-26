@@ -60,6 +60,17 @@ System::~System()
 
 void System::initialize()
 {
+	/* pwm */
+	_pwm.initialize();
+
+	/* Set fast output (400Hz) */
+	for (uint8_t iChannel = 0 ; iChannel<8 ; iChannel++)
+	{
+		_pwm.setFastOutputChannels(_BV(iChannel), 400);
+		_pwm.write(iChannel, MIN_PULSEWIDTH);
+		_pwm.enable_out(iChannel);
+	}
+
 	_paramMgt.loadAllValues();
 
     /* Disable magnetometer */
@@ -70,9 +81,6 @@ void System::initialize()
 	infra::Task::delay(10);
 
 	_spiBus.initialize();
-
-	/* Short pause to ensure SPI reset */
-	infra::Task::delay(10);
 
 	_i2c.begin();
 	_i2c.setSpeed(false);
@@ -92,29 +100,14 @@ void System::initialize()
 	/* Set clock diviser */
 	_spiBus.setClockDivider(SPI_CLOCK_DIV32); // 2MHZ SPI rate
 
-	/* Short pause to ensure SPI reset */
-	infra::Task::delay(10);
-
 	_imuMgt.initialize();
 	_baro.initialize();
 
-	/* Short pause to ensure SPI reset */
-	infra::Task::delay(10);
 	/* Set clock diviser */
 	_spiBus.setClockDivider(SPI_CLOCK_DIV16); // 2MHZ SPI rate
 
-	/* Short pause to ensure SPI reset */
-	infra::Task::delay(10);
+	/* Initialize compass */
 	_compass.initialize();
-
-	/* pwm */
-	_pwm.initialize();
-
-	/* Set fast output (400Hz) */
-	for (uint8_t iChannel = 0 ; iChannel<8 ; iChannel++)
-	{
-		_pwm.setFastOutputChannels(_BV(CH_1), 400);
-	}
 
 	/* Estimator */
 	_estimator.initialize();
@@ -235,9 +228,6 @@ void System::executeReadyMode()
 /** @brief Execute armed mode */
 void System::executeArmedMode()
 {
-	/* Process GCS new messages */
-	_gcs.processNewMessages();
-
 	/* Process sensors */
 	processRawSensors();
 
@@ -255,6 +245,9 @@ void System::executeArmedMode()
 
 	/* Process actuator */
 	processActuators();
+
+	/* Process GCS new messages */
+	_gcs.processNewMessages();
 
 	/* Process GCS services */
 	_gcs.processServices();
