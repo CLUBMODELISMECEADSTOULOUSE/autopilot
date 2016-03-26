@@ -49,15 +49,6 @@ protected:
 	ControllerPid<T> _ctrl_z;
 };
 
-/** @brief Setter method of controller parameters */
-template <typename T>
-void ControllerPid3Axes<T>::setParam(const Parameter& param)
-{
-	_ctrl_x.setParam(param.axes[0]);
-	_ctrl_y.setParam(param.axes[1]);
-	_ctrl_z.setParam(param.axes[2]);
-}
-
 /**
  * \brief Constructor for the PID 3 axes controller class
  *

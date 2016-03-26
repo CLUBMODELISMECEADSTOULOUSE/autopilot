@@ -66,8 +66,6 @@ public:
 			const T& errCommandPrev,
 			T& command);
 
-	inline void setParam(const Parameter& param);
-
 protected:
 	/** @brief Controller parameters */
 	const Parameter& _param;
@@ -79,19 +77,11 @@ protected:
 	T _intCtrlErr;
 };
 
-template <typename T>
-void ControllerPid<T>::setParam(
-		const Parameter& param)
-{
-	_param = param;
-}
-
 template<typename T>
 ControllerPid<T>::ControllerPid(
 		/* Parameters */
 		const Parameter& param)
 : _param(param),
-  _ctrlErrPrev((T)0),
   _intCtrlErr((T)0)
 {
 }
@@ -105,7 +95,6 @@ template<typename T>
 void ControllerPid<T>::initialize()
 {
 	this->_intCtrlErr = 0;
-	this->_ctrlErrPrev = 0;
 }
 
 /** @brief Compute the controller value */
